@@ -11,7 +11,7 @@
 - [x] qwen3 思考模式的处理方式已实测确认
 - [x] `wsl --shutdown` 后重进，容器自动恢复，模型无需重新下载
 - [x] 性能基线已记录
-- [ ] 提交、打 tag `p1-models`，导出快照 `p1-models`
+- [x] 提交、打 tag `p1-models`，导出快照 `p1-models`
 
 ## 偏差记录
 
@@ -25,6 +25,7 @@
 | 快照 | 日期 | 大小 | SHA256（前 16 位） |
 | --- | --- | --- | --- |
 | p0-baseline | 2026-10-22 | 2.48 GB | 见 C:\wsl-snapshots\p0-baseline.sha256.txt |
+| p1-models | 2026-10-22 | 13.81 GB | 346a91c8adf854e5 |
 
 ## P0 实测环境基线（2026-10-22）
 
