@@ -6,8 +6,8 @@
 
 ## P1 验收
 
-- [ ] `docker compose up -d` 后健康检查通过
-- [ ] 每个模型用原生接口和 `/v1` 接口各调用成功一次（对话模型 `/v1/chat/completions`，向量模型 `/v1/embeddings`）
+- [x] `docker compose up -d` 后健康检查通过
+- [x] 每个模型用原生接口和 `/v1` 接口各调用成功一次（对话模型 `/v1/chat/completions`，向量模型 `/v1/embeddings`）
 - [ ] qwen3 思考模式的处理方式已实测确认
 - [ ] `wsl --shutdown` 后重进，容器自动恢复，模型无需重新下载
 - [ ] 性能基线已记录

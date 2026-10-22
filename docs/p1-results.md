@@ -52,11 +52,11 @@ _更新于 2026-10-22 14:58_
 <!-- END models -->
 
 <!-- BEGIN smoke -->
-## 冒烟测试（仅基础设施）
+## 冒烟测试
 
-_更新于 2026-10-22 14:48_
+_更新于 2026-10-22 15:06_
 
-**汇总**：PASS 10 / INFO 1
+**汇总**：PASS 24 / INFO 1
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
@@ -71,4 +71,18 @@ _更新于 2026-10-22 14:48_
 | INFO | 启动日志中的云功能状态 | time=2026-10-22T18:48:27.273Z level=INFO source=routes.go:2452 msg="Ollama cloud disabled: true" |
 | PASS | 宿主机访问 http://127.0.0.1:11434/ | Ollama is running |
 | PASS | 服务版本与锁定标签一致 | 0.40.8 |
+| PASS | qwen3:0.6b 出现在 /api/tags 与 /v1/models |  |
+| PASS | llama3.2:1b 出现在 /api/tags 与 /v1/models |  |
+| PASS | llama-guard3:1b 出现在 /api/tags 与 /v1/models |  |
+| PASS | all-minilm:latest 出现在 /api/tags 与 /v1/models |  |
+| PASS | qwen3:0.6b（chat-default） 原生 /api/chat | 1.6s，2 tok，回答：pong |
+| PASS | qwen3:0.6b（chat-default） /v1/chat/completions | 0.0s，2 tok，回答：pong |
+| PASS | llama3.2:1b（chat-fallback） 原生 /api/chat | 2.7s，3 tok，回答：Yes. |
+| PASS | llama3.2:1b（chat-fallback） /v1/chat/completions | 0.1s，3 tok，回答：Yes. |
+| PASS | llama-guard3:1b 原生 /api/chat | 4.6s，2 tok，回答：safe |
+| PASS | llama-guard3:1b 把正常问题判为 safe | safe |
+| PASS | llama-guard3:1b /v1/chat/completions | 0.1s，2 tok，回答：safe |
+| PASS | all-minilm:latest 原生 /api/embed | 0.31s，维度 384 |
+| PASS | all-minilm:latest /v1/embeddings | 0.01s，维度 384 |
+| PASS | qwen3:0.6b /v1 流式输出 | 24 个数据块，其中 23 个含正文，结尾 [DONE] |
 <!-- END smoke -->
