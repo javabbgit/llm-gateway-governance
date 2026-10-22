@@ -3,3 +3,6 @@
 !.env.example
 *.key
 keys/
+.claude/settings.local.json
+__pycache__/
+*.pyc

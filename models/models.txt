@@ -1,0 +1,12 @@
+# P1 模型清单：每行“标签 类型 别名”，# 之后为注释。
+# 类型：chat 对话 / guard 内容安全审查 / embed 向量
+# 别名是 P2 网关里的逻辑名，“-”表示没有别名。
+# 改动本文件后运行 bash scripts/pull-models.sh，会重新生成 models/lock.json。
+
+qwen3:0.6b        chat   chat-default    # 主力对话（若步骤 5 判定不可用，换成下面的 qwen2.5:0.5b）
+llama3.2:1b       chat   chat-fallback   # 第二家族：降级与 PII 改道目标
+llama-guard3:1b   guard  -               # 内容安全审查，P1 拉取，P4 使用
+all-minilm        embed  -               # embeddings 接口演示
+
+# 备选（步骤 5 判定 qwen3 不可用时启用，并把上面 qwen3 一行的别名改成“-”或删掉该行）：
+# qwen2.5:0.5b    chat   chat-default
