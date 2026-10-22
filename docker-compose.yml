@@ -5,7 +5,7 @@ name: llm-gateway-governance
 services:
   ollama:
     # 由 scripts/pin-image.sh 写入“版本号@摘要”；UNPINNED 是故意写的无效标签，未锁定前无法启动。
-    image: ollama/ollama:UNPINNED
+    image: ollama/ollama:0.40.8@sha256:2b8eecdb85aa6ea67c381c8ecffec04b2658496cf2821a8f88b0485bdff198e8
     restart: unless-stopped
     environment:
       OLLAMA_KEEP_ALIVE: "24h"         # 模型加载后常驻，演示时不冷启动
