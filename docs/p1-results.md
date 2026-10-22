@@ -86,3 +86,40 @@ _更新于 2026-10-22 15:06_
 | PASS | all-minilm:latest /v1/embeddings | 0.01s，维度 384 |
 | PASS | qwen3:0.6b /v1 流式输出 | 24 个数据块，其中 23 个含正文，结尾 [DONE] |
 <!-- END smoke -->
+
+<!-- BEGIN think -->
+## qwen3 思考模式实测
+
+_更新于 2026-10-22 15:12_
+
+模型 `qwen3:0.6b`，问题“What is 17 + 25? Reply with only the number.”，temperature 0，seed 42，上限 1024 tok。
+
+| 方式 | HTTP | 耗时 s | 生成 tok | 思考 | 回答 | 答对 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 原生 · 不传 think | 200 | 13.4 | 749 | 有 | 42 | 是 |
+| 原生 · think=false | 200 | 0.2 | 11 | 无 | 17 + 25 = 42 | 是 |
+| 原生 · think=true | 200 | 4.2 | 236 | 有 | 42 | 是 |
+| /v1 · 不传参数 | 200 | 4.8 | 236 | 有 | 42 | 是 |
+| /v1 · reasoning_effort=none | 200 | 0.2 | 11 | 无 | 17 + 25 = 42 | 是 |
+| /v1 · reasoning.effort=none | 200 | 0.2 | 11 | 无 | 17 + 25 = 42 | 是 |
+| /v1 · 提示词末尾加 /no_think | 200 | 21.9 | 882 | 有 | 42 | 是 |
+| /v1 · think=false（非标准字段） | 200 | 4.8 | 236 | 有 | 42 | 是 |
+
+**建议**：保留 qwen3:0.6b。/v1 的 reasoning_effort=none 能关闭思考；P2 在 LiteLLM 的 chat-default 上固定附带该参数，并在网关层复测。
+
+**汇总**：PASS 1 / INFO 10
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| INFO | qwen3:0.6b 声明的能力 | completion, tools, thinking |
+| INFO | 原生 · 不传 think | 13.4s，749 tok，思考：有，回答：42 |
+| INFO | 原生 · think=false | 0.2s，11 tok，思考：无，回答：17 + 25 = 42 |
+| INFO | 原生 · think=true | 4.2s，236 tok，思考：有，回答：42 |
+| INFO | /v1 · 不传参数 | 4.8s，236 tok，思考：有，回答：42 |
+| INFO | /v1 · reasoning_effort=none | 0.2s，11 tok，思考：无，回答：17 + 25 = 42 |
+| INFO | /v1 · reasoning.effort=none | 0.2s，11 tok，思考：无，回答：17 + 25 = 42 |
+| INFO | /v1 · 提示词末尾加 /no_think | 21.9s，882 tok，思考：有，回答：42 |
+| INFO | /v1 · think=false（非标准字段） | 4.8s，236 tok，思考：有，回答：42 |
+| INFO | /v1 默认是否思考 | 是 |
+| PASS | 建议 | 保留 qwen3:0.6b。/v1 的 reasoning_effort=none 能关闭思考；P2 在 LiteLLM 的 chat-default 上固定附带该参数，并在网关层复测。 |
+<!-- END think -->
