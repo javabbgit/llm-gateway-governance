@@ -1,0 +1,62 @@
+{
+  "generated_at": "2026-10-22T14:58:11-04:00",
+  "ollama_version": "0.40.8",
+  "image": "ollama/ollama:0.40.8@sha256:2b8eecdb85aa6ea67c381c8ecffec04b2658496cf2821a8f88b0485bdff198e8",
+  "models": [
+    {
+      "name": "qwen3:0.6b",
+      "kind": "chat",
+      "alias": "chat-default",
+      "digest": "7df6b6e09427a769808717c0a93cadc4ae99ed4eb8bf5ca557c90846becea435",
+      "size_bytes": 522653767,
+      "family": "qwen3",
+      "parameter_size": "751.63M",
+      "quantization": "Q4_K_M",
+      "capabilities": [
+        "completion",
+        "tools",
+        "thinking"
+      ]
+    },
+    {
+      "name": "llama3.2:1b",
+      "kind": "chat",
+      "alias": "chat-fallback",
+      "digest": "baf6a787fdffd633537aa2eb51cfd54cb93ff08e28040095462bb63daf552878",
+      "size_bytes": 1321098329,
+      "family": "llama",
+      "parameter_size": "1.2B",
+      "quantization": "Q8_0",
+      "capabilities": [
+        "completion",
+        "tools"
+      ]
+    },
+    {
+      "name": "llama-guard3:1b",
+      "kind": "guard",
+      "alias": "",
+      "digest": "494147e06bf99e10dbe67b63a07ac81c162f18ef3341aa3390007ac828571b3b",
+      "size_bytes": 1600181919,
+      "family": "llama",
+      "parameter_size": "1.5B",
+      "quantization": "Q8_0",
+      "capabilities": [
+        "completion"
+      ]
+    },
+    {
+      "name": "all-minilm:latest",
+      "kind": "embed",
+      "alias": "",
+      "digest": "1b226e2802dbb772b5fc32a58f103ca1804ef7501331012de126ab22f67475ef",
+      "size_bytes": 45960996,
+      "family": "bert",
+      "parameter_size": "23M",
+      "quantization": "F16",
+      "capabilities": [
+        "embedding"
+      ]
+    }
+  ]
+}

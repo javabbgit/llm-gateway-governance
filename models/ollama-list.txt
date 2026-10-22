@@ -1,0 +1,5 @@
+NAME                 ID              SIZE      MODIFIED               
+all-minilm:latest    1b226e2802db    45 MB     Less than a second ago    
+llama-guard3:1b      494147e06bf9    1.6 GB    3 seconds ago             
+llama3.2:1b          baf6a787fdff    1.3 GB    About a minute ago        
+qwen3:0.6b           7df6b6e09427    522 MB    About a minute ago        

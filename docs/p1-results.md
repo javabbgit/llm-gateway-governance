@@ -29,6 +29,28 @@ _更新于 2026-10-22 14:41_
 - 来源：ollama/ollama 在 GitHub 的最新正式版 v0.40.8，锁定于 2026-10-22 14:41
 <!-- END pin -->
 
+<!-- BEGIN models -->
+## 模型锁定清单
+
+_更新于 2026-10-22 14:58_
+
+**汇总**：PASS 4
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | qwen3:0.6b | 751.63M Q4_K_M，0.52 GB，摘要 7df6b6e09427，能力 completion,tools,thinking |
+| PASS | llama3.2:1b | 1.2B Q8_0，1.32 GB，摘要 baf6a787fdff，能力 completion,tools |
+| PASS | llama-guard3:1b | 1.5B Q8_0，1.60 GB，摘要 494147e06bf9，能力 completion |
+| PASS | all-minilm:latest | 23M F16，0.05 GB，摘要 1b226e2802db，能力 embedding |
+
+| 模型 | 类型 | 别名 | 参数量 | 量化 | 大小 GB | 摘要（前 12 位） | 能力 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| qwen3:0.6b | chat | chat-default | 751.63M | Q4_K_M | 0.52 | 7df6b6e09427 | completion, tools, thinking |
+| llama3.2:1b | chat | chat-fallback | 1.2B | Q8_0 | 1.32 | baf6a787fdff | completion, tools |
+| llama-guard3:1b | guard | - | 1.5B | Q8_0 | 1.60 | 494147e06bf9 | completion |
+| all-minilm:latest | embed | - | 23M | F16 | 0.05 | 1b226e2802db | embedding |
+<!-- END models -->
+
 <!-- BEGIN smoke -->
 ## 冒烟测试（仅基础设施）
 
