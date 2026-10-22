@@ -123,3 +123,20 @@ _更新于 2026-10-22 15:12_
 | INFO | /v1 默认是否思考 | 是 |
 | PASS | 建议 | 保留 qwen3:0.6b。/v1 的 reasoning_effort=none 能关闭思考；P2 在 LiteLLM 的 chat-default 上固定附带该参数，并在网关层复测。 |
 <!-- END think -->
+
+<!-- BEGIN warmup -->
+## 预热
+
+_更新于 2026-10-22 15:17_
+
+**汇总**：PASS 6
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 加载 qwen3:0.6b | 0.0s（其中载入 0.0s） |
+| PASS | 加载 llama3.2:1b | 2.3s（其中载入 0.0s） |
+| PASS | 加载 llama-guard3:1b | 0.0s（其中载入 0.0s） |
+| PASS | qwen3:0.6b 常驻内存 | 占用 1.02 GB，到期 2026-10-23T19:17:17 |
+| PASS | llama3.2:1b 常驻内存 | 占用 1.52 GB，到期 2026-10-23T19:17:19 |
+| PASS | llama-guard3:1b 常驻内存 | 占用 1.80 GB，到期 2026-10-23T19:17:19 |
+<!-- END warmup -->
