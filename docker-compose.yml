@@ -1,10 +1,11 @@
 # llm-gateway-governance — 全部组件集中在这一个 compose 文件，按阶段往里加服务。
-# P1：只有 Ollama（纯 CPU 本地小模型）。
+# P1：Ollama（纯 CPU 本地小模型）。P2：LiteLLM 网关 + Postgres。
+# 只有 LiteLLM 对宿主机开放 127.0.0.1:4000；Ollama 与 Postgres 只在容器网络内可达。
+# 变量来自同目录的 .env（由 scripts/gen-env.sh 生成，不提交）。
 name: llm-gateway-governance
 
 services:
   ollama:
-    # 由 scripts/pin-image.sh 写入“版本号@摘要”；UNPINNED 是故意写的无效标签，未锁定前无法启动。
     image: ollama/ollama:0.40.8@sha256:2b8eecdb85aa6ea67c381c8ecffec04b2658496cf2821a8f88b0485bdff198e8
     restart: unless-stopped
     environment:
@@ -15,19 +16,67 @@ services:
       OLLAMA_NO_CLOUD: "1"             # 关闭 Ollama Cloud：本地模型层不得把请求转发到云端
     volumes:
       - ollama-models:/root/.ollama    # 命名卷，随 WSL 快照导出
-    ports:
-      - "127.0.0.1:11434:11434"        # 仅 P1 测试用；P2 删除这一段，模型只能经网关访问
+    # P2 起不映射任何端口：模型只能经网关访问（总纲决策 8）
     healthcheck:
       test: ["CMD", "ollama", "list"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
-    logging:
+    logging: &logging
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
 
+  postgres:
+    # 由 scripts/pin-image.sh postgres 写入“版本号@摘要”；UNPINNED 是故意写的无效标签
+    image: postgres:UNPINNED
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: litellm
+      POSTGRES_DB: litellm
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?先运行 bash scripts/gen-env.sh}
+    volumes:
+      - pg-data:/var/lib/postgresql/data   # key、团队、费用日志；P4 的 governance schema 也在这里
+    # 不映射端口：数据库只给 LiteLLM 用
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U litellm -d litellm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    logging: *logging
+
+  litellm:
+    # 由 scripts/pin-image.sh litellm 写入“版本号@摘要”；只用官方镜像（总纲决策 2）
+    image: ghcr.io/berriai/litellm:UNPINNED
+    restart: unless-stopped
+    command: ["--config", "/app/config/config.yaml", "--port", "4000"]
+    environment:
+      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?先运行 bash scripts/gen-env.sh}
+      LITELLM_SALT_KEY: ${LITELLM_SALT_KEY:?先运行 bash scripts/gen-env.sh}
+      DATABASE_URL: postgresql://litellm:${POSTGRES_PASSWORD:?先运行 bash scripts/gen-env.sh}@postgres:5432/litellm
+      GITHUB_MODELS_TOKEN: ${GITHUB_MODELS_TOKEN:-}
+      STORE_MODEL_IN_DB: "False"           # 与 config.yaml 一致：模型只来自配置文件
+      LITELLM_LOCAL_MODEL_COST_MAP: "True" # 用镜像自带的价格表，启动时不联网下载（P5 离线演示）
+    volumes:
+      - ./litellm:/app/config:ro           # config.yaml 与治理插件，只读挂载
+    ports:
+      - "127.0.0.1:4000:4000"              # 唯一对外端口：API 与管理界面
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ollama:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:4000/health/liveliness', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s                   # 首次启动要做数据库迁移
+    logging: *logging
+
 volumes:
   ollama-models:
+  pg-data:

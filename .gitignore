@@ -6,3 +6,5 @@ keys/
 .claude/settings.local.json
 __pycache__/
 *.pyc
+.secrets/
+litellm/__pycache__/

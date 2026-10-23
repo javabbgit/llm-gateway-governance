@@ -10,17 +10,18 @@
 
 ## 铁律
 1. 不运行 sudo、apt 或任何安装命令；需要时停下，说明原因，等人类处理。
-2. 不读、不写、不打印 `.env` 和任何密钥；不设置 `ANTHROPIC_API_KEY`。
+2. 不读、不写、不打印 `.env`、`.secrets/` 下的文件和任何密钥；不设置 `ANTHROPIC_API_KEY`、`GITHUB_TOKEN`、`GH_TOKEN`。不运行 `scripts/gen-env.sh`。
 3. 不 `git push`、不打 tag、不 `git reset`；可以 `git add` 和 `git commit`。
-4. 不删除 Docker 卷：禁止 `docker volume rm`、`docker compose down -v`、`docker system prune`。
-5. 镜像必须是“版本号@sha256 摘要”；不要改成 latest，不要手工改摘要（用 `scripts/pin-image.sh`）。
-6. 不擅自改端口、模型清单、环境变量。现实与文档不符时，做能跑通的最小改动，并在 `docs/progress.md` 的“偏差记录”表加一行：步骤、原计划、实际、原因。
-7. 同一个错误修了两次仍失败：停止，汇报完整报错和已尝试的办法，交给人类。网络、容器连通类问题第一次失败就汇报。
+4. 不删除 Docker 卷：禁止 `docker volume rm`、`docker compose down -v`、`docker system prune`。删掉 pg-data 卷等于作废所有 key。
+5. 镜像必须是“版本号@sha256 摘要”；不要改成 latest，不要手工改摘要（用 `scripts/pin-image.sh <服务>`）。
+6. 不擅自改端口、模型清单、`litellm/config.yaml`、`litellm/governance.py`、环境变量。现实与文档不符时，做能跑通的最小改动，并在 `docs/progress.md` 的“偏差记录”表加一行：步骤、原计划、实际、原因。
+7. 同一个错误修了两次仍失败：停止，汇报完整报错和已尝试的办法，交给人类。网络、端口、容器连通、数据库连接类问题第一次失败就汇报。
 
 ## 检查工具
-- `python3 scripts/p1check.py <子命令>`：env、lock、smoke、think、warmup、persist、bench。输出 PASS/FAIL/WARN，结果自动写入 `docs/p1-results.md`。
+- `python3 scripts/p1check.py <子命令>`：P1 模型层。P2 起 Ollama 不再映射端口，需要时加 `OLLAMA_URL=http://<ollama 容器 IP>:11434`。
+- `python3 scripts/p2check.py <子命令>`：env、infra、bypass、key、route、sdk、fallback、plugin、nolog、cloud、persist、secrets。结果自动写入 `docs/p2-results.md`，密钥只显示前 6 位。
 - 以脚本结果为准。FAIL 才需要处理，WARN 只汇报。
-- 日志：`docker compose logs --tail 100 ollama`
+- 日志：`docker compose logs --tail 100 litellm`（或 ollama、postgres）。日志里不应出现请求原文。
 
 ## 汇报格式（完成后只写这些）
 - 做了什么：不超过 5 行
@@ -29,7 +30,7 @@
 除非失败，不要贴完整日志。
 
 ## 提交
-信息格式 `p1: <动作>`，例如 `p1: pin ollama image`。只提交与本任务相关的文件，`docs/p1-results.md` 随任务一起提交。
+信息格式 `p2: <动作>`，例如 `p2: pin litellm image`。只提交与本任务相关的文件，`docs/p2-results.md` 随任务一起提交。
 
 ## 权限设置
-Claude Code 读取 `.claude/settings.json`；Copilot CLI 用 `bash scripts/copilot.sh` 启动。两边规则一致：常规 docker/curl/git 提交免确认，上面铁律中的命令禁止，其余逐次确认。
+Claude Code 读取 `.claude/settings.json`；Copilot CLI 用 `bash scripts/copilot.sh` 启动。两边规则一致：常规 docker/curl/git 提交与检查脚本免确认，上面铁律中的命令禁止，其余逐次确认。

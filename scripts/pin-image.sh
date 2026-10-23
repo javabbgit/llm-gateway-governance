@@ -1,24 +1,51 @@
 #!/usr/bin/env bash
-# 锁定 ollama/ollama 镜像（版本号 + 摘要）并写回 docker-compose.yml。
-# 用法：bash scripts/pin-image.sh           # 取 GitHub 上 ollama/ollama 的最新正式版
-#       bash scripts/pin-image.sh 0.32.5    # 指定版本
+# 锁定镜像（版本号 + 摘要）并写回 docker-compose.yml。
+# 用法：bash scripts/pin-image.sh ollama   [版本]   # 默认取 GitHub 上 ollama/ollama 的最新正式版
+#       bash scripts/pin-image.sh litellm  [标签]   # 默认取 BerriAI/litellm 最新的 vX.Y.Z-stable 发布
+#       bash scripts/pin-image.sh postgres [大版本] # 默认 17，解析成具体小版本，例如 17.6
+#       bash scripts/pin-image.sh 0.40.8            # 兼容 P1 写法：等同 ollama 0.40.8
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-ver="${1:-}"
-if [[ -z "$ver" ]]; then
-  ver="$(gh release view --repo ollama/ollama --json tagName --jq .tagName 2>/dev/null || true)"
-fi
-if [[ -z "$ver" ]]; then
-  ver="$(curl -fsSL https://api.github.com/repos/ollama/ollama/releases/latest | jq -r .tag_name)"
-fi
-ver="${ver#v}"
-if [[ ! "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-  echo "FAIL 版本号不是正式版格式：'${ver}'（不接受 rc 等预发布版）" >&2
-  exit 1
-fi
+svc="${1:-ollama}"
+arg="${2:-}"
+if [[ "$svc" =~ ^v?[0-9] ]]; then arg="$svc"; svc="ollama"; fi
 
-image="ollama/ollama:${ver}"
+fail() { echo "FAIL $*" >&2; exit 1; }
+
+case "$svc" in
+  ollama)
+    repo="ollama/ollama"
+    ver="$arg"
+    [[ -z "$ver" ]] && ver="$(gh release view --repo ollama/ollama --json tagName --jq .tagName 2>/dev/null || true)"
+    ver="${ver#v}"
+    [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "版本号不是正式版格式：'${ver}'（不接受 rc 等预发布版）"
+    tag="$ver"; source_note="ollama/ollama 的 GitHub 正式版 v${ver}"
+    ;;
+  litellm)
+    repo="ghcr.io/berriai/litellm"
+    tag="$arg"
+    if [[ -z "$tag" ]]; then
+      tag="$(gh release list --repo BerriAI/litellm --limit 100 --json tagName,isPrerelease \
+             --jq '[.[] | select(.isPrerelease | not) | .tagName | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+-stable$"))][0]' 2>/dev/null || true)"
+    fi
+    [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-stable)?(\.[0-9]+)?$ ]] || fail "取不到 LiteLLM 的 stable 标签：'${tag}'。到 github.com/BerriAI/litellm/releases 找一个 vX.Y.Z-stable，再运行 bash scripts/pin-image.sh litellm <标签>"
+    source_note="BerriAI/litellm 的 GitHub 发布 ${tag}（stable 通道）"
+    ;;
+  postgres)
+    repo="postgres"
+    major="${arg:-17}"
+    [[ "$major" =~ ^[0-9]+$ ]] || fail "postgres 只接受大版本号，例如 17"
+    echo "拉取 postgres:${major} 以解析具体小版本 ..."
+    docker pull "postgres:${major}" >/dev/null
+    pgv="$(docker image inspect "postgres:${major}" --format '{{range .Config.Env}}{{println .}}{{end}}' | sed -n 's/^PG_VERSION=//p' | cut -d- -f1)"
+    [[ "$pgv" =~ ^${major}\.[0-9]+$ ]] || fail "解析不出 Postgres 小版本：'${pgv}'"
+    tag="$pgv"; source_note="Docker Hub 官方镜像 postgres:${major} 当前的小版本 ${pgv}"
+    ;;
+  *) fail "未知服务：${svc}（可选 ollama、litellm、postgres）";;
+esac
+
+image="${repo}:${tag}"
 echo "拉取 ${image} ..."
 docker pull "${image}"
 
@@ -26,21 +53,16 @@ docker pull "${image}"
 digest="$(docker buildx imagetools inspect "${image}" --format '{{json .Manifest}}' 2>/dev/null | jq -r '.digest // empty' || true)"
 if [[ -z "${digest}" ]]; then
   digest="$(docker image inspect "${image}" --format '{{range .RepoDigests}}{{println .}}{{end}}' \
-            | grep '^ollama/ollama@' | head -n1 | cut -d@ -f2)"
+            | grep "^${repo}@" | head -n1 | cut -d@ -f2 || true)"
 fi
-if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
-  echo "FAIL 取不到镜像摘要：'${digest}'" >&2
-  exit 1
-fi
+[[ "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]] || fail "取不到镜像摘要：'${digest}'"
 
 pinned="${image}@${digest}"
-sed -i -E "s#^([[:space:]]*image:[[:space:]]*)ollama/ollama[^[:space:]]*#\1${pinned}#" docker-compose.yml
-if ! grep -qF "image: ${pinned}" docker-compose.yml; then
-  echo "FAIL 未能写入 docker-compose.yml" >&2
-  exit 1
-fi
+repo_re="$(printf '%s' "$repo" | sed 's/[.]/\\./g')"
+sed -i -E "s#^([[:space:]]*image:[[:space:]]*)${repo_re}[:@][^[:space:]]*#\1${pinned}#" docker-compose.yml
+grep -qF "image: ${pinned}" docker-compose.yml || fail "未能写入 docker-compose.yml（compose 里找不到 ${repo} 的 image 行）"
 echo "PASS 已锁定 ${pinned}"
 git --no-pager diff --stat -- docker-compose.yml || true
 
-python3 scripts/p1check.py record pin --title "镜像锁定" --text "- 镜像：\`${pinned}\`
-- 来源：ollama/ollama 在 GitHub 的最新正式版 v${ver}，锁定于 $(date '+%Y-%m-%d %H:%M')"
+python3 scripts/p2check.py record "pin-${svc}" --title "镜像锁定：${svc}" --text "- 镜像：\`${pinned}\`
+- 来源：${source_note}，锁定于 $(date '+%Y-%m-%d %H:%M')"
