@@ -67,3 +67,22 @@ _2026-10-22 21:38，PASS 26 / WARN 0 / FAIL 0_
 | PASS | 不带 key 调用被拒 | 401 |
 | PASS | 管理界面页面可访问 | http://127.0.0.1:4000/ui/ → 200 |
 <!-- END infra -->
+
+<!-- BEGIN bypass -->
+## 反向测试：绕过网关
+
+_2026-10-22 22:05，PASS 7 / WARN 1 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 宿主机 127.0.0.1:11434（Ollama）连不上 | 拒绝连接 |
+| PASS | 宿主机 127.0.0.1:5432（Postgres）连不上 | 拒绝连接 |
+| PASS | 宿主机调用 Ollama /api/tags 失败 | URLError: <urlopen error [Errno 111] Connection refused> |
+| PASS | 另一网络的容器连 ollama:11434 | gaierror |
+| PASS | 另一网络的容器连 postgres:5432 | gaierror |
+| PASS | 另一网络的容器连 172.19.0.2:11434 | TimeoutError |
+| PASS | 另一网络的容器连 172.19.0.3:5432 | TimeoutError |
+| WARN | 宿主机直连 Ollama 容器 IP 172.19.0.2:11434 | 可达：Linux 上宿主机能路由到网桥 IP；能在宿主机上执行命令的人本就等同 docker 组/root，记为已知边界 |
+
+宿主机直连容器 IP 的 WARN 是预期结果，处理方式见总纲第 12 节“更严格的网络隔离”。
+<!-- END bypass -->
