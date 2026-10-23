@@ -3,8 +3,8 @@
   "permissions": {
     "allow": [
       "Bash(docker compose ps:*)", "Bash(docker compose logs:*)", "Bash(docker compose up -d:*)",
-      "Bash(docker compose restart:*)", "Bash(docker compose config:*)", "Bash(docker compose exec ollama ollama:*)",
-      "Bash(docker inspect:*)", "Bash(docker logs:*)", "Bash(docker ps:*)",
+      "Bash(docker compose restart:*)", "Bash(docker compose exec ollama ollama:*)",
+      "Bash(docker logs:*)", "Bash(docker ps:*)",
       "Bash(docker port:*)", "Bash(docker pull:*)", "Bash(docker image inspect:*)",
       "Bash(curl:*)", "Bash(jq:*)",
       "Bash(python3 scripts/p1check.py:*)", "Bash(python3 scripts/p2check.py:*)",
