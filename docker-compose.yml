@@ -31,7 +31,7 @@ services:
 
   postgres:
     # 由 scripts/pin-image.sh postgres 写入“版本号@摘要”；UNPINNED 是故意写的无效标签
-    image: postgres:UNPINNED
+    image: postgres:17.11@sha256:b8faeff7712663c2773a190181e1246e37e364b887611c04658c28b44e2408fe
     restart: unless-stopped
     environment:
       POSTGRES_USER: litellm
@@ -50,7 +50,7 @@ services:
 
   litellm:
     # 由 scripts/pin-image.sh litellm 写入“版本号@摘要”；只用官方镜像（总纲决策 2）
-    image: ghcr.io/berriai/litellm:UNPINNED
+    image: ghcr.io/berriai/litellm:v1.106.2@sha256:7294b90f868c5c38c99b83021c7ba46f9b439e95f8e32964c925c7d2563a03f7
     restart: unless-stopped
     command: ["--config", "/app/config/config.yaml", "--port", "4000"]
     environment:

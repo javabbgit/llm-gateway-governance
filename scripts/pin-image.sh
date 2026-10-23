@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 锁定镜像（版本号 + 摘要）并写回 docker-compose.yml。
 # 用法：bash scripts/pin-image.sh ollama   [版本]   # 默认取 GitHub 上 ollama/ollama 的最新正式版
-#       bash scripts/pin-image.sh litellm  [标签]   # 默认取 BerriAI/litellm 最新的 vX.Y.Z-stable 发布
+#       bash scripts/pin-image.sh litellm  [标签]   # 默认取 BerriAI/litellm 标为 Latest 的正式版，如 v1.106.2
 #       bash scripts/pin-image.sh postgres [大版本] # 默认 17，解析成具体小版本，例如 17.6
 #       bash scripts/pin-image.sh 0.40.8            # 兼容 P1 写法：等同 ollama 0.40.8
 set -euo pipefail
@@ -26,11 +26,10 @@ case "$svc" in
     repo="ghcr.io/berriai/litellm"
     tag="$arg"
     if [[ -z "$tag" ]]; then
-      tag="$(gh release list --repo BerriAI/litellm --limit 100 --json tagName,isPrerelease \
-             --jq '[.[] | select(.isPrerelease | not) | .tagName | select(test("^v[0-9]+\\.[0-9]+\\.[0-9]+-stable$"))][0]' 2>/dev/null || true)"
+      tag="$(gh release view --repo BerriAI/litellm --json tagName --jq .tagName 2>/dev/null || true)"
     fi
-    [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-stable)?(\.[0-9]+)?$ ]] || fail "取不到 LiteLLM 的 stable 标签：'${tag}'。到 github.com/BerriAI/litellm/releases 找一个 vX.Y.Z-stable，再运行 bash scripts/pin-image.sh litellm <标签>"
-    source_note="BerriAI/litellm 的 GitHub 发布 ${tag}（stable 通道）"
+    [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-stable)?(\.[0-9]+)?$ ]] || fail "取不到 LiteLLM 的正式版标签：'${tag}'。到 github.com/BerriAI/litellm/releases 找标为 Latest 的 vX.Y.Z，再运行 bash scripts/pin-image.sh litellm <标签>"
+    source_note="BerriAI/litellm 的 GitHub 发布 ${tag}（Latest 正式版）"
     ;;
   postgres)
     repo="postgres"
