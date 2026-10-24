@@ -135,3 +135,29 @@ _2026-10-24 12:44，PASS 6 / WARN 0 / FAIL 0_
 
 内部结算价按“每 CPU 小时 $0.10”与 P1 实测吞吐折算，见 config.yaml 注释。
 <!-- END pricing -->
+
+<!-- BEGIN budget -->
+## 预算超标阻断
+
+_2026-10-24 12:57，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 重建 demo-budget | sk-Msc…，预算 $0.0002 |
+| PASS | 超出预算后请求被阻断 | 放行 3 次后阻断，HTTP 422 |
+| PASS | 错误信息清楚 | Budget has been exceeded! Key=demo-budget (sk-...YFdQ) Current cost: 0.00021749999999999997, Max budget: 0.0002 |
+| PASS | 超支不超过一次调用的费用 | 已用 $0.000000，预算 $0.0002，每次约 $0.000000 |
+<!-- END budget -->
+
+<!-- BEGIN ratelimit -->
+## 限流 429
+
+_2026-10-24 12:58，PASS 1 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 每分钟 5 次：前 5 次放行，第 6 次返回 429 | 200 200 200 200 200 429 429 |
+| INFO | 429 的提示 | Rate limit exceeded for api_key: 6f8b027cd9dbab98ec0bcccc01cfd42e66213f65b494a26b1af3c6436eeef85b. Limit type: requests. Current limit: 5, Remaining: 0. Limit r… |
+
+按请求数限流：CPU 推理太慢，按 token 限流难以在演示时间内触发。
+<!-- END ratelimit -->
