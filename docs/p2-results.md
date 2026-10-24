@@ -86,3 +86,46 @@ _2026-10-22 22:05，PASS 7 / WARN 1 / FAIL 0_
 
 宿主机直连容器 IP 的 WARN 是预期结果，处理方式见总纲第 12 节“更严格的网络隔离”。
 <!-- END bypass -->
+
+<!-- BEGIN key -->
+## 测试用虚拟 key
+
+_2026-10-23 20:17，PASS 1 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 已创建测试 key | sk-rOr…，别名 p2-test，存于 .secrets/p2-test.key（不提交） |
+<!-- END key -->
+
+<!-- BEGIN route -->
+## 经网关调用
+
+_2026-10-23 20:17，PASS 9 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | /v1/models 列出 chat-default |  |
+| PASS | /v1/models 列出 chat-fallback |  |
+| PASS | /v1/models 列出 chat-github |  |
+| PASS | 只暴露逻辑名，不暴露后端模型名 |  |
+| PASS | chat-default 调用 | 2.5s，2 tok，后端 openai/qwen3:0.6b，组 chat-default，回答：pong |
+| PASS | chat-fallback 调用 | 2.8s，3 tok，后端 openai/llama3.2:1b，组 chat-fallback，回答：Yes. |
+| PASS | chat-default 思考关闭（应用不传参数） | 0.3s，11 tok，回答：17 + 25 = 42 |
+| PASS | chat-default 思考关闭（应用传 reasoning_effort=high） | 0.2s，12 tok，回答：17 + 25 = 42. |
+| PASS | chat-default 流式 | 25 个正文块，以 [DONE] 结尾，0.5s |
+<!-- END route -->
+
+<!-- BEGIN sdk -->
+## OpenAI 官方 SDK（只改 base_url）
+
+_2026-10-23 20:17，PASS 5 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| INFO | openai SDK 版本 | 2.33.0 |
+| PASS | SDK 列出模型 | chat-default, chat-fallback, chat-github |
+| PASS | SDK 调用 chat-default | 0.1s，回答：pong |
+| PASS | SDK 调用 chat-fallback | 0.2s，回答：Swing. |
+| PASS | SDK 流式 chat-default | 22 个正文块，0.4s，内容：Count from 1 to 5: 1, 2, 3, 4, 5. |
+| PASS | SDK 请求未配置的模型被拒 | HTTP 403 |
+<!-- END sdk -->
