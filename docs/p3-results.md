@@ -82,3 +82,20 @@ _2026-10-24 11:52，PASS 4 / WARN 0 / FAIL 0_
 | PASS | Anthropic key 已配置 |  |
 | PASS | 入口脚本没有报缺少密钥 |  |
 <!-- END infra-p3 -->
+
+<!-- BEGIN org -->
+## 组织：团队与 key
+
+_2026-10-24 12:04，PASS 8 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 更新团队 underwriting | 模型 chat-default,chat-fallback；预算 $2.0/30d；60 RPM |
+| PASS |   更新 key uw-loan-assistant | sk-lax… |
+| PASS | 更新团队 marketing | 模型 chat-default,chat-fallback,chat-cloud；预算 $2.0/30d；60 RPM |
+| PASS |   更新 key mkt-copywriter | sk-AH0… |
+| PASS | 更新团队 it-ops | 模型 chat-default,chat-fallback,chat-cloud；预算 $0.5/30d；30 RPM |
+| PASS |   更新 key ops-runbook-bot | sk-c2g… |
+| PASS |   更新 key demo-budget | sk-uMi… |
+| PASS |   更新 key demo-ratelimit | sk-P3U… |
+<!-- END org -->
