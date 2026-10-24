@@ -5,7 +5,7 @@
 <!-- BEGIN secrets -->
 ## 密钥：Compose secrets
 
-_2026-10-24 11:52，PASS 23 / WARN 0 / FAIL 0_
+_2026-10-24 17:04，PASS 21 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
@@ -15,9 +15,6 @@ _2026-10-24 11:52，PASS 23 / WARN 0 / FAIL 0_
 | PASS | .secrets/postgres_password | 0o600，bd819c… |
 | PASS | .secrets/anthropic_api_key | 0o600，sk-ant… |
 | PASS | .env 不再保存密钥 | .env 已删除 |
-| PASS | litellm_salt_key 与迁移前 .env 逐字一致 |  |
-| PASS | postgres_password 与迁移前 .env 逐字一致 |  |
-| INFO | .env.p2-backup 仍在 | P3 验收通过后删除（步骤 11） |
 | PASS | docker compose config 不含密钥明文 |  |
 | PASS | docker inspect litellm 的环境变量不含密钥明文 |  |
 | PASS | litellm 以 /run/secrets 挂载密钥 |  |
