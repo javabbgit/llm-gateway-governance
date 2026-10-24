@@ -200,3 +200,24 @@ _2026-10-23 23:00，PASS 8 / WARN 0 / FAIL 0_
 | PASS | 测试 key 仍有效 | 已用额度 0.0 |
 | PASS | 重启后 chat-default 可调用 | 2.0s（含冷启动），回答：pong |
 <!-- END persist -->
+
+<!-- BEGIN secrets -->
+## 密钥扫描
+
+_2026-10-23 23:14，PASS 10 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 历史中从未提交 .env、.secrets/、*.key |  |
+| PASS | 历史中没有 LITELLM_MASTER_KEY 的值 |  |
+| PASS | 历史中没有 LITELLM_SALT_KEY 的值 |  |
+| PASS | 历史中没有 POSTGRES_PASSWORD 的值 |  |
+| PASS | 历史中没有 测试 key 的值 |  |
+| PASS | 历史中没有GitHub 细粒度令牌格式的字符串 |  |
+| PASS | 历史中没有GitHub 令牌格式的字符串 |  |
+| PASS | 历史中没有Anthropic key格式的字符串 |  |
+| PASS | 历史中没有sk- 形式的密钥格式的字符串 |  |
+| PASS | .gitignore 覆盖 .env 与 .secrets/ | .env, .secrets/p2-test.key |
+
+扫描范围：所有分支的完整历史与 .env 中的每一个密钥值。转公开后 GitHub 还会自动做 secret scanning。
+<!-- END secrets -->
