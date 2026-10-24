@@ -183,3 +183,20 @@ _2026-10-23 21:48，PASS 2 / WARN 0 / FAIL 2_
 | INFO | 网关记的费用 | 0（GitHub Models 免费额度不出账单，P3 再定内部结算价） |
 | PASS | 容器日志里没有令牌原文 |  |
 <!-- END cloud -->
+
+<!-- BEGIN persist -->
+## 重启后恢复
+
+_2026-10-23 23:00，PASS 8 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | ollama 健康 | healthy |
+| PASS | ollama 在本次开机后自动拉起 | 开机后 3s 启动 |
+| PASS | postgres 健康 | healthy |
+| PASS | postgres 在本次开机后自动拉起 | 开机后 3s 启动 |
+| PASS | litellm 健康 | healthy |
+| PASS | litellm 在本次开机后自动拉起 | 开机后 3s 启动 |
+| PASS | 测试 key 仍有效 | 已用额度 0.0 |
+| PASS | 重启后 chat-default 可调用 | 2.0s（含冷启动），回答：pong |
+<!-- END persist -->
