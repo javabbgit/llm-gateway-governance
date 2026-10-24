@@ -1,5 +1,11 @@
-# LiteLLM 网关配置（配置即代码：改模型、路由、降级只改这里并提交 git）。
+# LiteLLM 网关配置（配置即代码：改模型、路由、降级、单价只改这里并提交 git）。
 # 应用只认逻辑名；后端换模型或加供应商时，应用代码不变。
+#
+# 内部结算价（总纲决策 13）：本地模型按“这台笔记本每 CPU 小时 $0.10”分摊，
+# 用 P1 实测的生成速度折算成每 token 单价：
+#   qwen3:0.6b   72.4 tok/s → 26.1 万 tok/h → 输出 $0.40 / 1M（取整）
+#   llama3.2:1b  28.1 tok/s → 10.1 万 tok/h → 输出 $1.00 / 1M（取整）
+# 输入（prefill）远快于生成，按输出单价的 1/4 计。$0.10/CPU 小时是演示假设，写进 ADR。
 model_list:
   - model_name: chat-default
     litellm_params:
@@ -8,19 +14,32 @@ model_list:
       api_key: ollama                     # Ollama 不校验，占位
       reasoning_effort: none              # 网关统一关闭 qwen3 思考（P1：4.8s → 0.2s）
       timeout: 120
+      input_cost_per_token: 0.0000001     # $0.10 / 1M，内部结算价
+      output_cost_per_token: 0.0000004    # $0.40 / 1M，内部结算价
     model_info:
-      jurisdiction: local                 # P4 驻留路由用的供应商属性，P2 只是标注
+      jurisdiction: local                 # P4 驻留路由用的供应商属性
   - model_name: chat-fallback
     litellm_params:
       model: openai/llama3.2:1b
       api_base: http://ollama:11434/v1
       api_key: ollama
       timeout: 120
+      input_cost_per_token: 0.00000025    # $0.25 / 1M，内部结算价
+      output_cost_per_token: 0.000001     # $1.00 / 1M，内部结算价
     model_info:
       jurisdiction: local
+  - model_name: chat-cloud
+    litellm_params:
+      model: anthropic/claude-haiku-5-5   # 已批准的云端模型（总纲第 3 节），真实计费
+      api_key: os.environ/ANTHROPIC_API_KEY   # 由 litellm/entrypoint.sh 从 Compose secret 读入
+      reasoning_effort: low               # Haiku 5.5 默认开自适应思考（medium）；网关固定为 low 控制费用
+      timeout: 60
+      # 单价不写：用镜像自带价格表（$0.10 / $0.50 每 1M，提示 ≤10 万 token 档），对账时核对
+    model_info:
+      jurisdiction: US
 
 router_settings:
-  # 只在本地模型之间降级；绝不从本地降级到云端，否则会成为绕过驻留策略的出口
+  # 只在本地模型之间降级；绝不从本地降级到云端，也不从云端降级到本地（P4 由策略决定改道）
   fallbacks:
     - chat-default: [chat-fallback]
   num_retries: 0                          # 演示时一次失败就降级，日志清楚
@@ -29,13 +48,16 @@ litellm_settings:
   callbacks: governance.proxy_handler_instance
   turn_off_message_logging: true          # 日志与回调中不出现请求和响应原文
   request_timeout: 120
-  drop_params: false                      # 不认识的参数直接报错，不静默丢弃
+  drop_params: false                      # 不认识的参数直接报错，不静默丢弃（受控参数由插件丢弃）
 
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
   database_url: os.environ/DATABASE_URL
   store_model_in_db: false                # 管理界面不能增改模型，模型只来自本文件
   store_prompts_in_spend_logs: false      # 费用日志不存原文（默认即 false，这里显式写出）
-  # 允许请求里带 mock_testing_fallbacks 等测试参数，用于 P2 降级测试和 P5 演示“故障降级”。
+  # 允许请求里带 mock_testing_fallbacks 等测试参数，用于降级测试和 P5 演示“故障降级”。
   # 只影响带参数的那个请求本身。生产环境应设为 false（见 ADR）。
   dangerously_allow_mock_testing_request_params: true
+  # 管理界面能否用 admin + Master Key（共享静态口令）登录。P3 步骤 8 先建好有独立密码的管理员，
+  # 确认能登录后再改为 true。Master Key 仍可调用管理 API，被锁在界面外时改回 false 并重启即可恢复。
+  disable_env_credential_login: false

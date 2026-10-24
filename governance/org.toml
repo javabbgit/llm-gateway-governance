@@ -1,0 +1,55 @@
+# Demo Mortgage Co. —— 虚构组织（总纲 P3 第 1 项）。公开仓库不出现真实公司名和内部系统名。
+# 团队、模型白名单、预算、限流的唯一来源（配置即代码）。改这里 → 提交 → 运行：
+#   python3 scripts/p3check.py org
+# 幂等：已存在的团队和 key 按本文件更新，不重复创建；生成的 key 写入 .secrets/p3-keys.json（不提交）。
+# 本文件里删掉的字段不会在网关里被清空，删除团队或 key 请在管理界面操作并记入偏差表。
+# 金额单位美元；budget_duration 到期自动清零；rpm_limit 为每分钟请求数。
+# models 用 config.yaml 里的逻辑名；key 不写 models 时继承团队白名单。
+
+org = "Demo Mortgage Co."
+
+[[team]]
+alias = "underwriting"
+note = "审批：处理客户个人信息，只能用本地模型"
+models = ["chat-default", "chat-fallback"]
+max_budget = 2.00
+budget_duration = "30d"
+rpm_limit = 60
+
+  [[team.key]]
+  alias = "uw-loan-assistant"
+  note = "贷款审批助手"
+
+[[team]]
+alias = "marketing"
+note = "市场：不处理客户数据，可用本地与已批准的云端模型"
+models = ["chat-default", "chat-fallback", "chat-cloud"]
+max_budget = 2.00
+budget_duration = "30d"
+rpm_limit = 60
+
+  [[team.key]]
+  alias = "mkt-copywriter"
+  note = "营销文案助手"
+
+[[team]]
+alias = "it-ops"
+note = "运维：开发测试，模型全开，预算最紧"
+models = ["chat-default", "chat-fallback", "chat-cloud"]
+max_budget = 0.50
+budget_duration = "30d"
+rpm_limit = 30
+
+  [[team.key]]
+  alias = "ops-runbook-bot"
+  note = "运维手册问答"
+
+  [[team.key]]
+  alias = "demo-budget"
+  note = "演示：预算极小，连续调用几次即超标（p3check budget 每次重建）"
+  max_budget = 0.0002
+
+  [[team.key]]
+  alias = "demo-ratelimit"
+  note = "演示：每分钟 5 次，第 6 次返回 429"
+  rpm_limit = 5

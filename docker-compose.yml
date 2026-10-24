@@ -1,7 +1,8 @@
 # llm-gateway-governance — 全部组件集中在这一个 compose 文件，按阶段往里加服务。
-# P1：Ollama（纯 CPU 本地小模型）。P2：LiteLLM 网关 + Postgres。
+# P1：Ollama（纯 CPU 本地小模型）。P2：LiteLLM 网关 + Postgres。P3：密钥改用 Compose secrets。
 # 只有 LiteLLM 对宿主机开放 127.0.0.1:4000；Ollama 与 Postgres 只在容器网络内可达。
-# 变量来自同目录的 .env（由 scripts/gen-env.sh 生成，不提交）。
+# 密钥是 .secrets/ 下的文件（由 scripts/gen-secrets.sh 生成，不提交），以 /run/secrets/<名字> 挂进容器，
+# 不出现在 environment 里，所以 docker inspect 和 docker compose config 都看不到明文。
 name: llm-gateway-governance
 
 services:
@@ -36,7 +37,8 @@ services:
     environment:
       POSTGRES_USER: litellm
       POSTGRES_DB: litellm
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?先运行 bash scripts/gen-env.sh}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password   # 官方镜像支持 _FILE；数据卷已初始化，只在全新初始化时用到
+    secrets: [postgres_password]
     volumes:
       - pg-data:/var/lib/postgresql/data   # key、团队、费用日志；P4 的 governance schema 也在这里
     # 不映射端口：数据库只给 LiteLLM 用
@@ -52,15 +54,15 @@ services:
     # 由 scripts/pin-image.sh litellm 写入“版本号@摘要”；只用官方镜像（总纲决策 2）
     image: ghcr.io/berriai/litellm:v1.106.2@sha256:7294b90f868c5c38c99b83021c7ba46f9b439e95f8e32964c925c7d2563a03f7
     restart: unless-stopped
+    # 包装入口：从 /run/secrets 读出密钥，作为进程环境变量交给 LiteLLM，再 exec 镜像原入口
+    entrypoint: ["/bin/sh", "/app/config/entrypoint.sh"]
     command: ["--config", "/app/config/config.yaml", "--port", "4000"]
     environment:
-      LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?先运行 bash scripts/gen-env.sh}
-      LITELLM_SALT_KEY: ${LITELLM_SALT_KEY:?先运行 bash scripts/gen-env.sh}
-      DATABASE_URL: postgresql://litellm:${POSTGRES_PASSWORD:?先运行 bash scripts/gen-env.sh}@postgres:5432/litellm
       STORE_MODEL_IN_DB: "False"           # 与 config.yaml 一致：模型只来自配置文件
       LITELLM_LOCAL_MODEL_COST_MAP: "True" # 用镜像自带的价格表，启动时不联网下载（P5 离线演示）
+    secrets: [litellm_master_key, litellm_salt_key, postgres_password, anthropic_api_key]
     volumes:
-      - ./litellm:/app/config:ro           # config.yaml 与治理插件，只读挂载
+      - ./litellm:/app/config:ro           # config.yaml、治理插件、入口脚本，只读挂载
     ports:
       - "127.0.0.1:4000:4000"              # 唯一对外端口：API 与管理界面
     depends_on:
@@ -79,3 +81,14 @@ services:
 volumes:
   ollama-models:
   pg-data:
+
+secrets:
+  # 每个文件只含一个值，权限 600。LITELLM_SALT_KEY 永不更改；anthropic_api_key 可为空（chat-cloud 不可用）
+  litellm_master_key:
+    file: ./.secrets/litellm_master_key
+  litellm_salt_key:
+    file: ./.secrets/litellm_salt_key
+  postgres_password:
+    file: ./.secrets/postgres_password
+  anthropic_api_key:
+    file: ./.secrets/anthropic_api_key

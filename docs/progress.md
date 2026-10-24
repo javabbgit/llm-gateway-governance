@@ -1,8 +1,8 @@
 # 进度与验收状态
 
-- 当前阶段：**P1 模型层**（进行中）
-- 阶段文档：P1 模型层 — 详细操作步骤（Claude Doc，规划对话维护）
-- 实测结果：`docs/p1-results.md`（脚本自动生成）
+- 当前阶段：**P3 治理**（进行中）
+- 阶段文档：P3 治理 — 详细操作步骤（Claude Doc，规划对话维护）
+- 实测结果：`docs/p3-results.md`（脚本自动生成）；之前阶段见 `docs/p1-results.md`、`docs/p2-results.md`
 
 ## P1 验收
 
@@ -71,3 +71,26 @@
 | --- | --- | --- | --- |
 | 3 | pin-image.sh litellm 找 vX.Y.Z-stable 发布 | LiteLLM 标签已改为 vX.Y.Z；手工指定 v1.106.2，并把脚本改为取标为 Latest 的发布 | 上游命名变更 |
 | 8 | chat-github 经 GitHub Models 零费用调用 | GitHub Models 已于 2026-07-30 退役，接口只返回 OK；删除令牌并移除 chat-github | 规划时未核实服务现状 |
+
+## P3 治理
+
+验收（对应总纲第 7 节；步骤见 P3 详细操作步骤文档）
+
+- [ ] 密钥改为 Compose secrets：docker inspect 与 docker compose config 都看不到明文（步骤 3）
+- [ ] chat-cloud（Haiku 5.5）经网关调用成功，应用传的采样参数被丢弃（步骤 4、9）
+- [ ] 费用日志不丢行：连续 N 次本地请求正好 N 行（步骤 5）
+- [ ] 本地模型按内部结算价正确计费，降级按实际模型计价（步骤 5）
+- [ ] 团队与 key 由 governance/org.toml 创建，可重复运行（步骤 6）
+- [ ] underwriting 的 key 调用 chat-cloud 被拒绝（步骤 7）
+- [ ] 界面管理员有独立密码；admin + Master Key 不能再登录界面，Master Key 仍能调管理 API（步骤 8）
+- [ ] 预算超标后请求被阻断，错误信息清楚（步骤 9）
+- [ ] 超过限流返回 429（步骤 9）
+- [ ] 云端请求同样不存原文（步骤 9）
+- [ ] 对账：网关记录的云端 token 与 Anthropic Console 一致（步骤 10）
+- [ ] 重启后团队、key、预算、已用额度全部保留（步骤 11）
+- [ ] 提交、打 tag `p3-governance`，导出快照 `p3-governance`（步骤 12）
+
+### P3 偏差记录
+
+| 步骤 | 原计划 | 实际 | 原因 |
+| --- | --- | --- | --- |

@@ -100,8 +100,21 @@ def read_env() -> dict:
     return env
 
 
+SECRETS_DIR = ROOT / ".secrets"
+SECRET_FILES = {"LITELLM_MASTER_KEY": "litellm_master_key", "LITELLM_SALT_KEY": "litellm_salt_key",
+                "POSTGRES_PASSWORD": "postgres_password", "ANTHROPIC_API_KEY": "anthropic_api_key"}
+
+
+def secret_value(var: str) -> str:
+    """P3 起密钥在 .secrets/<文件>（Compose secrets）；P2 时在 .env。先读新位置，再回退旧位置。"""
+    f = SECRETS_DIR / SECRET_FILES.get(var, var.lower())
+    if f.exists():
+        return f.read_text(encoding="utf-8").strip()
+    return read_env().get(var, "")
+
+
 def master_key() -> str:
-    return os.environ.get("P2CHECK_MASTER_KEY") or read_env().get("LITELLM_MASTER_KEY", "")
+    return os.environ.get("P2CHECK_MASTER_KEY") or secret_value("LITELLM_MASTER_KEY")
 
 
 def test_key() -> str:
@@ -250,8 +263,13 @@ def cmd_env(_a) -> int:
 def cmd_infra(_a) -> int:
     rep = Report("infra", "基础设施")
     env = read_env()
-    # .env
-    if not ENV_FILE.exists():
+    if (SECRETS_DIR / "litellm_master_key").exists():  # P3 起：密钥在 .secrets/，由 p3check.py secrets 详查
+        for k in ["LITELLM_MASTER_KEY", "LITELLM_SALT_KEY", "POSTGRES_PASSWORD"]:
+            f = SECRETS_DIR / SECRET_FILES[k]
+            ok = f.exists() and f.read_text(encoding="utf-8").strip() and (f.stat().st_mode & 0o777) == 0o600
+            rep.add("PASS" if ok else "FAIL", f".secrets/{SECRET_FILES[k]} 存在且权限 600", mask(secret_value(k)))
+        rep.add("PASS" if master_key().startswith("sk-") else "FAIL", "Master Key 以 sk- 开头", "")
+    elif not ENV_FILE.exists():
         rep.add("FAIL", ".env", "不存在，先运行 bash scripts/gen-env.sh")
     else:
         mode = oct(ENV_FILE.stat().st_mode & 0o777)
@@ -632,6 +650,10 @@ def cmd_secrets(_a) -> int:
         return rep.finish()
     env = read_env()
     vals = {k: v for k, v in env.items() if len(v) >= 12 and any(t in k for t in ("KEY", "TOKEN", "PASSWORD", "SECRET"))}
+    for var in SECRET_FILES:
+        v = secret_value(var)
+        if len(v) >= 12:
+            vals[var] = v
     k = test_key()
     if k:
         vals["测试 key"] = k
