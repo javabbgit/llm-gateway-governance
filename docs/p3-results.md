@@ -189,3 +189,28 @@ _2026-10-24 13:09，PASS 5 / WARN 0 / FAIL 0_
 | PASS | 整库导出搜不到标记串 | 导出 734 KB |
 | PASS | 三个容器的日志搜不到标记串 | 日志 55 KB |
 <!-- END nolog -->
+
+<!-- BEGIN admin -->
+## 界面管理员账号
+
+_2026-10-24 15:07，PASS 2 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 创建管理员 | user_id gateway-admin，登录名 admin@demo-mortgage.example，角色 proxy_admin |
+| PASS | 设置临时密码 | 已设置，首次登录须改密 |
+| INFO | 下一步 | 浏览器打开 http://127.0.0.1:4000/ui/，用 admin@demo-mortgage.example 和临时密码登录并改密，然后运行 p3check.py login |
+<!-- END admin -->
+
+<!-- BEGIN login -->
+## 界面登录方式
+
+_2026-10-24 15:25，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | Master Key 仍能调用管理 API | /user/info → 200 |
+| PASS | 管理员角色 | proxy_admin |
+| PASS | 管理员已完成首次登录改密 | 是 |
+| PASS | admin + Master Key 不能再登录界面 | HTTP 401 |
+<!-- END login -->

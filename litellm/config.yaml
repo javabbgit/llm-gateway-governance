@@ -60,4 +60,4 @@ general_settings:
   dangerously_allow_mock_testing_request_params: true
   # 管理界面能否用 admin + Master Key（共享静态口令）登录。P3 步骤 8 先建好有独立密码的管理员，
   # 确认能登录后再改为 true。Master Key 仍可调用管理 API，被锁在界面外时改回 false 并重启即可恢复。
-  disable_env_credential_login: false
+  disable_env_credential_login: true

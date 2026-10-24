@@ -82,7 +82,7 @@
 - [x] 本地模型按内部结算价正确计费，降级按实际模型计价（步骤 6）
 - [x] 团队与 key 由 governance/org.toml 创建，可重复运行（步骤 4）
 - [x] underwriting 的 key 调用 chat-cloud 被拒绝（步骤 5）
-- [ ] 界面管理员有独立密码；admin + Master Key 不能再登录界面，Master Key 仍能调管理 API（步骤 9）
+- [x] 界面管理员有独立密码；admin + Master Key 不能再登录界面，Master Key 仍能调管理 API（步骤 9）
 - [x] 预算超标后请求被阻断，错误信息清楚（步骤 7）
 - [x] 超过限流返回 429（步骤 7）
 - [x] 云端请求同样不存原文（步骤 8）
