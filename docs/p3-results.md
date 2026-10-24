@@ -99,3 +99,22 @@ _2026-10-24 12:04，PASS 8 / WARN 0 / FAIL 0_
 | PASS |   更新 key demo-budget | sk-uMi… |
 | PASS |   更新 key demo-ratelimit | sk-P3U… |
 <!-- END org -->
+
+<!-- BEGIN access -->
+## 团队模型白名单
+
+_2026-10-24 12:34，PASS 8 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | uw-loan-assistant（underwriting）只看到本团队模型 | chat-default, chat-fallback |
+| PASS | mkt-copywriter（marketing）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
+| PASS | ops-runbook-bot（it-ops）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
+| PASS | demo-budget（it-ops）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
+| PASS | demo-ratelimit（it-ops）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
+| PASS | 审批团队调用本地 chat-default | 200 pong |
+| PASS | 审批团队调用云端 chat-cloud 被拒 | HTTP 403：The requested model 'chat-cloud' is not available for this API key, or the model name is invalid. Check the models avail… |
+| PASS | 市场团队调用云端 chat-cloud | 200 Ping |
+
+纵深防御的静态层：只有白名单挡不住把客户资料粘进市场团队的请求，那由 P4 的动态 PII 检测负责。
+<!-- END access -->
