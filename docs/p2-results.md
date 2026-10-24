@@ -129,3 +129,14 @@ _2026-10-23 20:17，PASS 5 / WARN 0 / FAIL 0_
 | PASS | SDK 流式 chat-default | 22 个正文块，0.4s，内容：Count from 1 to 5: 1, 2, 3, 4, 5. |
 | PASS | SDK 请求未配置的模型被拒 | HTTP 403 |
 <!-- END sdk -->
+
+<!-- BEGIN fallback -->
+## 降级测试
+
+_2026-10-23 20:53，PASS 2 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 正常请求不降级 | 组 chat-default，降级次数 0 |
+| PASS | chat-default 故障 → chat-fallback | 0.2s，降级次数 1，后端 openai/llama3.2:1b，回答：Yes. |
+<!-- END fallback -->
