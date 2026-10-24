@@ -526,12 +526,12 @@ def cmd_nolog(_a) -> int:
     rep.add("PASS" if r.status == 200 else "FAIL", "发送带标记串的请求", f"标记 {canary[:10]}…，call_id {cid[:8]}…，回答{'含' if canary in answer(r)[0] else '不含'}标记")
     row = ""
     for _ in range(18):  # 费用日志批量写入，最多等 90 秒
-        code, row = psql(f"select count(*) from \"LiteLLM_SpendLogs\" where request_id = '{cid}'")
+        code, row = psql(f"select count(*) from \"LiteLLM_SpendLogs\" where litellm_call_id = '{cid}'")
         if code == 0 and row.strip() not in ("", "0"):
             break
         time.sleep(5)
     rep.add("PASS" if row.strip() not in ("", "0") else "WARN", "费用日志已记录这次请求（证明日志在工作）", f"行数 {row.strip() or '?'}")
-    code, out = psql(f"select coalesce(messages::text,'') || '|' || coalesce(response::text,'') || '|' || coalesce(proxy_server_request::text,'') from \"LiteLLM_SpendLogs\" where request_id = '{cid}'")
+    code, out = psql(f"select coalesce(messages::text,'') || '|' || coalesce(response::text,'') || '|' || coalesce(proxy_server_request::text,'') from \"LiteLLM_SpendLogs\" where litellm_call_id = '{cid}'")
     if code == 0 and out:
         rep.add("PASS" if canary not in out else "FAIL", "费用日志的 messages/response/请求体字段不含原文", snip(out, 80))
     code, dump = run(["docker", "compose", "exec", "-T", "postgres", "pg_dump", "-U", "litellm", "--data-only", "litellm"], timeout=180)
