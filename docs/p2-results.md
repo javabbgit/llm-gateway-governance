@@ -100,18 +100,18 @@ _2026-10-23 20:17，PASS 1 / WARN 0 / FAIL 0_
 <!-- BEGIN route -->
 ## 经网关调用
 
-_2026-10-23 22:08，PASS 8 / WARN 0 / FAIL 0_
+_2026-10-24 11:56，PASS 8 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | /v1/models 列出 chat-default |  |
 | PASS | /v1/models 列出 chat-fallback |  |
 | PASS | 只暴露逻辑名，不暴露后端模型名 |  |
-| PASS | chat-default 调用 | 0.6s，2 tok，后端 openai/qwen3:0.6b，组 chat-default，回答：pong |
-| PASS | chat-fallback 调用 | 0.2s，3 tok，后端 openai/llama3.2:1b，组 chat-fallback，回答：Yes. |
-| PASS | chat-default 思考关闭（应用不传参数） | 0.2s，12 tok，回答：17 + 25 = 42. |
+| PASS | chat-default 调用 | 2.2s，2 tok，后端 openai/qwen3:0.6b，组 chat-default，回答：pong |
+| PASS | chat-fallback 调用 | 2.7s，3 tok，后端 openai/llama3.2:1b，组 chat-fallback，回答：Yes. |
+| PASS | chat-default 思考关闭（应用不传参数） | 0.3s，11 tok，回答：17 + 25 = 42 |
 | PASS | chat-default 思考关闭（应用传 reasoning_effort=high） | 0.2s，12 tok，回答：17 + 25 = 42. |
-| PASS | chat-default 流式 | 23 个正文块，以 [DONE] 结尾，0.4s |
+| PASS | chat-default 流式 | 17 个正文块，以 [DONE] 结尾，0.3s |
 <!-- END route -->
 
 <!-- BEGIN sdk -->
@@ -187,18 +187,15 @@ _2026-10-23 21:48，PASS 2 / WARN 0 / FAIL 2_
 <!-- BEGIN persist -->
 ## 重启后恢复
 
-_2026-10-23 23:00，PASS 8 / WARN 0 / FAIL 0_
+_2026-10-24 11:56，PASS 5 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | ollama 健康 | healthy |
-| PASS | ollama 在本次开机后自动拉起 | 开机后 3s 启动 |
 | PASS | postgres 健康 | healthy |
-| PASS | postgres 在本次开机后自动拉起 | 开机后 3s 启动 |
 | PASS | litellm 健康 | healthy |
-| PASS | litellm 在本次开机后自动拉起 | 开机后 3s 启动 |
 | PASS | 测试 key 仍有效 | 已用额度 0.0 |
-| PASS | 重启后 chat-default 可调用 | 2.0s（含冷启动），回答：pong |
+| PASS | 重启后 chat-default 可调用 | 0.0s（含冷启动），回答：pong |
 <!-- END persist -->
 
 <!-- BEGIN secrets -->

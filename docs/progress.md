@@ -76,7 +76,7 @@
 
 验收（对应总纲第 7 节；步骤见 P3 详细操作步骤文档）
 
-- [ ] 密钥改为 Compose secrets：docker inspect 与 docker compose config 都看不到明文（步骤 3）
+- [x] 密钥改为 Compose secrets：docker inspect 与 docker compose config 都看不到明文（步骤 3）
 - [ ] chat-cloud（Haiku 5.5）经网关调用成功，应用传的采样参数被丢弃（步骤 4、9）
 - [ ] 费用日志不丢行：连续 N 次本地请求正好 N 行（步骤 5）
 - [ ] 本地模型按内部结算价正确计费，降级按实际模型计价（步骤 5）
