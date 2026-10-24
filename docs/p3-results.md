@@ -161,3 +161,31 @@ _2026-10-24 12:58，PASS 1 / WARN 0 / FAIL 0_
 
 按请求数限流：CPU 推理太慢，按 token 限流难以在演示时间内触发。
 <!-- END ratelimit -->
+
+<!-- BEGIN cloud -->
+## 云端模型 chat-cloud（Haiku 5.5）
+
+_2026-10-24 13:08，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 经网关调用 Haiku 5.5（应用传了 temperature=0、top_p） | 0.9s，27+67 tok，回答：A mortgage underwriter evaluates a loan … |
+| PASS | 插件丢弃了应用传的采样参数 | chat-cloud key_alias=mkt-copywriter team=marketing call_type=acompletion dropped_params=temperature,top_p |
+| PASS | 费用 = 输入 × $0.10/1M + 输出 × $0.50/1M | 27+67 tok，记 $0.00003620，应为 $0.00003620 |
+| INFO | 云端响应 ID 保持供应商原样 | chatcmpl-76c2f859-1e21-4 |
+| PASS | 云端别名没有降级链（不会落到本地或别处） | HTTP 500  |
+<!-- END cloud -->
+
+<!-- BEGIN nolog -->
+## 云端请求同样不存原文
+
+_2026-10-24 13:09，PASS 5 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 发送带标记串的云端请求 | 标记 CANARY-716…，回答含标记 |
+| PASS | 费用日志已记录这次请求 | 1 行 |
+| PASS | 费用日志的原文字段为空 | {}/{}/{} |
+| PASS | 整库导出搜不到标记串 | 导出 734 KB |
+| PASS | 三个容器的日志搜不到标记串 | 日志 55 KB |
+<!-- END nolog -->
