@@ -221,3 +221,9 @@ _2026-10-23 23:14，PASS 10 / WARN 0 / FAIL 0_
 
 扫描范围：所有分支的完整历史与 .env 中的每一个密钥值。转公开后 GitHub 还会自动做 secret scanning。
 <!-- END secrets -->
+
+<!-- BEGIN restore -->
+## 快照恢复验证
+
+2026-10-24：p2-core.tar 导入为独立发行版 p2-verify，p2check persist 5/5 PASS（冷启动后 chat-default 2.1s），验证后已注销副本。
+<!-- END restore -->
