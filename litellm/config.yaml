@@ -18,15 +18,6 @@ model_list:
       timeout: 120
     model_info:
       jurisdiction: local
-  - model_name: chat-github
-    litellm_params:
-      model: openai/openai/gpt-4.1-mini   # GitHub Models 的模型 ID 是 publisher/model
-      api_base: https://models.github.ai/inference
-      api_key: os.environ/GITHUB_MODELS_TOKEN
-      timeout: 60
-      rpm: 15                             # 与 Copilot Pro 低档模型的每分钟限额一致
-    model_info:
-      jurisdiction: US
 
 router_settings:
   # 只在本地模型之间降级；绝不从本地降级到云端，否则会成为绕过驻留策略的出口

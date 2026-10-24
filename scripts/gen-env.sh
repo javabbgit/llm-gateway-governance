@@ -19,7 +19,6 @@ add() {  # add 名字 值 注释
 add LITELLM_MASTER_KEY "sk-$(rand)" "网关管理员密钥，以 sk- 开头。可以轮换：改这里后 docker compose up -d litellm"
 add LITELLM_SALT_KEY   "sk-$(rand)" "加密数据库内凭据用。生成后永不更改，另存一份到密码管理器"
 add POSTGRES_PASSWORD  "$(rand)"    "Postgres 密码（只含十六进制字符，可直接放进连接串）"
-add GITHUB_MODELS_TOKEN ""          "GitHub Models 细粒度 PAT（只授 Models 只读），步骤 8 填写；留空则 chat-github 不可用"
 
 git check-ignore -q .env || { echo "FAIL .env 没有被 .gitignore 忽略，立即处理后再继续" >&2; exit 1; }
 if [[ ${#added[@]} -gt 0 ]]; then

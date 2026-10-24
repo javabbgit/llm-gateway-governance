@@ -36,7 +36,7 @@ _2026-10-22 21:38，PASS 0 / WARN 0 / FAIL 0_
 <!-- BEGIN infra -->
 ## 基础设施
 
-_2026-10-22 21:38，PASS 26 / WARN 0 / FAIL 0_
+_2026-10-23 22:08，PASS 26 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
@@ -100,19 +100,18 @@ _2026-10-23 20:17，PASS 1 / WARN 0 / FAIL 0_
 <!-- BEGIN route -->
 ## 经网关调用
 
-_2026-10-23 20:17，PASS 9 / WARN 0 / FAIL 0_
+_2026-10-23 22:08，PASS 8 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | /v1/models 列出 chat-default |  |
 | PASS | /v1/models 列出 chat-fallback |  |
-| PASS | /v1/models 列出 chat-github |  |
 | PASS | 只暴露逻辑名，不暴露后端模型名 |  |
-| PASS | chat-default 调用 | 2.5s，2 tok，后端 openai/qwen3:0.6b，组 chat-default，回答：pong |
-| PASS | chat-fallback 调用 | 2.8s，3 tok，后端 openai/llama3.2:1b，组 chat-fallback，回答：Yes. |
-| PASS | chat-default 思考关闭（应用不传参数） | 0.3s，11 tok，回答：17 + 25 = 42 |
+| PASS | chat-default 调用 | 0.6s，2 tok，后端 openai/qwen3:0.6b，组 chat-default，回答：pong |
+| PASS | chat-fallback 调用 | 0.2s，3 tok，后端 openai/llama3.2:1b，组 chat-fallback，回答：Yes. |
+| PASS | chat-default 思考关闭（应用不传参数） | 0.2s，12 tok，回答：17 + 25 = 42. |
 | PASS | chat-default 思考关闭（应用传 reasoning_effort=high） | 0.2s，12 tok，回答：17 + 25 = 42. |
-| PASS | chat-default 流式 | 25 个正文块，以 [DONE] 结尾，0.5s |
+| PASS | chat-default 流式 | 23 个正文块，以 [DONE] 结尾，0.4s |
 <!-- END route -->
 
 <!-- BEGIN sdk -->
@@ -133,12 +132,13 @@ _2026-10-23 20:17，PASS 5 / WARN 0 / FAIL 0_
 <!-- BEGIN fallback -->
 ## 降级测试
 
-_2026-10-23 20:53，PASS 2 / WARN 0 / FAIL 0_
+_2026-10-23 21:48，PASS 3 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | 正常请求不降级 | 组 chat-default，降级次数 0 |
 | PASS | chat-default 故障 → chat-fallback | 0.2s，降级次数 1，后端 openai/llama3.2:1b，回答：Yes. |
+| PASS | 云端别名没有降级链（不会从云端落到别处，也不会从本地落到云端） | 500，litellm.InternalServerError: This is a mock exception for model=chat-github, to … |
 <!-- END fallback -->
 
 <!-- BEGIN plugin -->
@@ -169,3 +169,17 @@ _2026-10-23 21:16，PASS 5 / WARN 0 / FAIL 0_
 | PASS | 整库导出搜不到标记串 | 导出 234 KB |
 | PASS | 三个容器的日志搜不到标记串 | 日志 12 KB |
 <!-- END nolog -->
+
+<!-- BEGIN cloud -->
+## GitHub Models 云端别名
+
+_2026-10-23 21:48，PASS 2 / WARN 0 / FAIL 2_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 令牌是细粒度 PAT | github… |
+| FAIL | 目录中有 openai/gpt-4.1-mini | 限额档 ?，目录共 0 个模型 |
+| FAIL | 经网关调用 chat-github | 500 litellm.InternalServerError: InternalServerError: OpenAIException - Empty or invalid response from LLM endpoint. Received: 'OK\r\n'. Check the reverse proxy or model server configuration.  LiteLLM: model group 'chat-github' failed with the  |
+| INFO | 网关记的费用 | 0（GitHub Models 免费额度不出账单，P3 再定内部结算价） |
+| PASS | 容器日志里没有令牌原文 |  |
+<!-- END cloud -->

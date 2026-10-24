@@ -364,7 +364,7 @@ def cmd_key(_a) -> int:
             return rep.finish()
         rep.add("FAIL", "已有测试 key 无效", f"{r.status} {r.err_msg()}；如确认作废，删除 .secrets/p2-test.key 后重跑")
         return rep.finish()
-    body = {"key_alias": "p2-test", "models": ALIASES_LOCAL + [ALIAS_CLOUD], "metadata": {"purpose": "P2 test key"}}
+    body = {"key_alias": "p2-test", "models": ALIASES_LOCAL, "metadata": {"purpose": "P2 test key"}}
     r = http("POST", f"{GW}/key/generate", mk, body, timeout=30)
     newk = r.json().get("key", "")
     if r.status != 200 or not newk:
@@ -384,7 +384,7 @@ def cmd_route(_a) -> int:
         return rep.finish()
     r = http("GET", f"{GW}/v1/models", k, timeout=15)
     ids = [m.get("id") for m in r.json().get("data", [])]
-    for a in ALIASES_LOCAL + [ALIAS_CLOUD]:
+    for a in ALIASES_LOCAL:
         rep.add("PASS" if a in ids else "FAIL", f"/v1/models 列出 {a}", "")
     leaked = [i for i in ids if i and ("/" in i or ":" in i)]
     rep.add("PASS" if not leaked else "WARN", "只暴露逻辑名，不暴露后端模型名", ", ".join(leaked) or "")

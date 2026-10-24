@@ -57,7 +57,6 @@ services:
       LITELLM_MASTER_KEY: ${LITELLM_MASTER_KEY:?先运行 bash scripts/gen-env.sh}
       LITELLM_SALT_KEY: ${LITELLM_SALT_KEY:?先运行 bash scripts/gen-env.sh}
       DATABASE_URL: postgresql://litellm:${POSTGRES_PASSWORD:?先运行 bash scripts/gen-env.sh}@postgres:5432/litellm
-      GITHUB_MODELS_TOKEN: ${GITHUB_MODELS_TOKEN:-}
       STORE_MODEL_IN_DB: "False"           # 与 config.yaml 一致：模型只来自配置文件
       LITELLM_LOCAL_MODEL_COST_MAP: "True" # 用镜像自带的价格表，启动时不联网下载（P5 离线演示）
     volumes:
