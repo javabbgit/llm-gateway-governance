@@ -29,11 +29,18 @@ ask_anthropic() {
   local k; read -rs k; echo
   k="$(printf '%s' "$k" | tr -d '[:space:]')"
   if [[ -n "$k" && "$k" != sk-ant-* ]]; then fail "看起来不是 Anthropic key（应以 sk-ant- 开头），未写入"; fi
+  if [[ -n "$k" ]]; then  # 写入前先问 Anthropic：粘贴重复、缺字符都会在这里被拒（P3 实测：粘重成 142 位导致 401）
+    local code
+    code="$(printf 'x-api-key: %s\n' "$k" | curl -s -o /dev/null -w '%{http_code}' -m 20 -H @- \
+            -H 'anthropic-version: 2023-06-01' https://api.anthropic.com/v1/models || true)"
+    [[ "$code" == 200 ]] || fail "Anthropic 没有接受这把 key（HTTP ${code:-无响应}，长度 ${#k}），未写入。检查是否粘贴重复或缺字符；可先按 Ctrl+U 清空再粘贴一次"
+    pass "Anthropic 验证通过（长度 ${#k}）"
+  fi
   printf '%s' "$k" > .secrets/anthropic_api_key; chmod 600 .secrets/anthropic_api_key
   if [[ -n "$k" ]]; then pass "anthropic_api_key 已写入（$(head6 "$k")…）"; else echo "WARN anthropic_api_key 为空：chat-cloud 暂不可用"; fi
 }
 
-if [[ "${1:-}" == "--anthropic" ]]; then ask_anthropic; echo "生效：docker compose up -d litellm"; exit 0; fi
+if [[ "${1:-}" == "--anthropic" ]]; then ask_anthropic; echo "生效：docker compose restart litellm（compose 不会因密钥文件内容变化而重建容器）"; exit 0; fi
 
 volume_exists=0
 docker volume inspect llm-gateway-governance_pg-data >/dev/null 2>&1 && volume_exists=1

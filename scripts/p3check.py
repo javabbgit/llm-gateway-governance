@@ -192,7 +192,7 @@ def cmd_secrets(_a) -> int:
         for var, n in (("LITELLM_SALT_KEY", "litellm_salt_key"), ("POSTGRES_PASSWORD", "postgres_password")):
             if old.get(var):
                 rep.add("PASS" if old[var].strip() == secret_file(n) else "FAIL", f"{n} 与迁移前 .env 逐字一致", "")
-        rep.add("INFO", ".env.p2-backup 仍在", "P3 验收通过后删除（步骤 11）")
+        rep.add("INFO", ".env.p2-backup 仍在", "P3 验收通过后删除（步骤 12）")
     code, cfg = run(["docker", "compose", "config"])
     if code == 0:
         hits = [n for n, v in vals.items() if v in cfg]
@@ -477,20 +477,26 @@ def cmd_budget(_a) -> int:
         if r.status == 200:
             calls += 1
             pt, ct = usage(r)
-            print(f"  第 {i + 1} 次：放行，{pt}+{ct} tok，已用 ${float(key_info(key).get('spend') or 0):.6f}")
+            print(f"  第 {i + 1} 次：放行，{pt}+{ct} tok")
             time.sleep(1)
             continue
         msg = r.err_msg()
         blocked = "budget" in msg.lower()
         print(f"  第 {i + 1} 次：HTTP {r.status}")
         break
-    spend = float(key_info(key).get("spend") or 0)
+    # 拦截看内存里的实时计数，key 的已用额度是后台批量写库的，有几十秒延迟；等它落库再判定超支
+    spend = 0.0
+    for _ in range(18):
+        spend = float(key_info(key).get("spend") or 0)
+        if not blocked or spend >= kdef["max_budget"]:
+            break
+        time.sleep(5)
     rep.add("PASS" if blocked else "FAIL", "超出预算后请求被阻断", f"放行 {calls} 次后阻断，HTTP {r.status}" if blocked else f"12 次都放行，已用 ${spend:.6f}")
     rep.add("PASS" if "Budget has been exceeded" in msg else "WARN", "错误信息清楚", snip(msg, 160))
     per = spend / calls if calls else 0
-    rep.add("PASS" if spend <= kdef["max_budget"] + per + 1e-9 else "WARN", "超支不超过一次调用的费用",
+    rep.add("PASS" if kdef["max_budget"] <= spend <= kdef["max_budget"] + per + 1e-9 else "WARN", "超支不超过一次调用的费用",
             f"已用 ${spend:.6f}，预算 ${kdef['max_budget']}，每次约 ${per:.6f}")
-    return rep.finish()
+    return rep.finish("先放行、再结账的软上限：最后一次放行的调用可以把已用额度推过预算，之后的请求返回 422。")
 
 
 # ---------- ratelimit ----------
@@ -534,8 +540,7 @@ def cmd_cloud(_a) -> int:
         want = x["pt"] * CLOUD_PRICE["in"] + x["ct"] * CLOUD_PRICE["out"]
         rep.add("PASS" if abs(x["spend"] - want) < 1e-12 else "FAIL", "费用 = 输入 × $0.10/1M + 输出 × $0.50/1M",
                 f"{x['pt']}+{x['ct']} tok，记 ${x['spend']:.8f}，应为 ${want:.8f}")
-        rep.add("PASS" if not x["request_id"].startswith("chatcmpl-") or "msg" in x["request_id"] else "INFO",
-                "云端响应 ID 保持供应商原样", x["request_id"][:24])
+        rep.add("INFO", "云端请求的费用日志主键由 LiteLLM 生成，不含 Anthropic 原生 msg_ ID", x["request_id"][:24])
     else:
         rep.add("FAIL", "费用日志", "90 秒内没有这次请求的记录")
     r = chat(CLOUD, key, "Reply with one word: pong", mock_testing_fallbacks=True)
