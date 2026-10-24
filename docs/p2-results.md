@@ -187,14 +187,17 @@ _2026-10-23 21:48，PASS 2 / WARN 0 / FAIL 2_
 <!-- BEGIN persist -->
 ## 重启后恢复
 
-_2026-10-24 11:56，PASS 5 / WARN 0 / FAIL 0_
+_2026-10-24 16:22，PASS 8 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | ollama 健康 | healthy |
+| PASS | ollama 在本次开机后自动拉起 | 开机后 3s 启动 |
 | PASS | postgres 健康 | healthy |
+| PASS | postgres 在本次开机后自动拉起 | 开机后 3s 启动 |
 | PASS | litellm 健康 | healthy |
-| PASS | 测试 key 仍有效 | 已用额度 0.0 |
+| PASS | litellm 在本次开机后自动拉起 | 开机后 3s 启动 |
+| PASS | 测试 key 仍有效 | 已用额度 4.195e-05 |
 | PASS | 重启后 chat-default 可调用 | 0.0s（含冷启动），回答：pong |
 <!-- END persist -->
 

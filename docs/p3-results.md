@@ -214,3 +214,36 @@ _2026-10-24 15:25，PASS 4 / WARN 0 / FAIL 0_
 | PASS | 管理员已完成首次登录改密 | 是 |
 | PASS | admin + Master Key 不能再登录界面 | HTTP 401 |
 <!-- END login -->
+
+<!-- BEGIN reconcile -->
+## 云端对账（网关 vs Anthropic Console）
+
+_2026-10-24 15:41，PASS 2 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 发送对账批次 10 次 | 成功 10 |
+| INFO | 网关记录（全部云端成功调用） | 13 次，输入 313 tok，输出 957 tok，UTC 2026-10-24 16:34 ~ 2026-10-24 19:40 |
+| PASS | 网关费用 = token × 官方单价 | 记 $0.000510，按单价算 $0.000510 |
+| INFO | 下一步 | Console → Usage：筛选网关专用 key 与 claude-haiku-5-5，日期覆盖上面的 UTC 区间，记下输入/输出 token，再运行 reconcile --console-in N --console-out M |
+
+Haiku 5.5 的思考 token 计入输出；网关按响应里的 usage 计，与 Console 口径一致。
+<!-- END reconcile -->
+
+<!-- BEGIN persist -->
+## 重启后团队、key、预算、已用额度保留
+
+_2026-10-24 16:25，PASS 9 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 团队 it-ops | 已用 $0.000233 保留 |
+| PASS | 团队 marketing | 已用 $0.000510 保留 |
+| PASS | 团队 underwriting | 已用 $0.000275 保留 |
+| PASS | key uw-loan-assistant | 已用 $0.000275 保留 |
+| PASS | key mkt-copywriter | 已用 $0.000510 保留 |
+| PASS | key ops-runbook-bot | 已用 $0.000000 保留 |
+| PASS | key demo-budget | 已用 $0.000218 保留 |
+| PASS | key demo-ratelimit | 已用 $0.000015 保留 |
+| PASS | 重启后团队 key 可调用 | 0.1s（含冷启动） |
+<!-- END persist -->

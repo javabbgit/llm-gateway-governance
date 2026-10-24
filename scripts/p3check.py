@@ -643,7 +643,7 @@ def cmd_persist(a) -> int:
                 rep.add("FAIL", f"{alias}", "重启后不见了")
                 continue
             diff = [f"{f}: {o.get(f)} → {n.get(f)}" for f in o if f != "spend" and o.get(f) != n.get(f)]
-            sp_ok = abs((n.get("spend") or 0) - (o.get("spend") or 0)) < 1e-9
+            sp_ok = (n.get("spend") or 0) >= (o.get("spend") or 0) - 1e-9  # 只许增加：persist 自身的验证调用会计费
             rep.add("PASS" if not diff and sp_ok else "FAIL", f"{'团队' if kind == 'teams' else 'key'} {alias}",
                     "; ".join(diff) or f"已用 ${n.get('spend'):.6f} 保留" + ("" if sp_ok else f"（重启前 ${o.get('spend'):.6f}）"))
     r = chat("chat-default", key_of("uw-loan-assistant"), "Reply with one word: pong")
