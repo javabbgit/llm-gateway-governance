@@ -140,3 +140,31 @@ _2026-10-23 20:53，PASS 2 / WARN 0 / FAIL 0_
 | PASS | 正常请求不降级 | 组 chat-default，降级次数 0 |
 | PASS | chat-default 故障 → chat-fallback | 0.2s，降级次数 1，后端 openai/llama3.2:1b，回答：Yes. |
 <!-- END fallback -->
+
+<!-- BEGIN plugin -->
+## 治理插件占位
+
+_2026-10-23 21:01，PASS 6 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 普通请求：插件在路由前记录逻辑名 | policy_check: pass (stub) call_id=5c9e530a-bf34-4a77-904a-21927f1dfd44 model=chat-default key_alias=p2-test ca… |
+| PASS | 应用传 reasoning_effort=high：插件在路由前记录逻辑名 | policy_check: pass (stub) call_id=6d4da1ea-dc03-48fd-b7ea-6c0837f9c137 model=chat-default key_alias=p2-test ca… |
+| PASS | 应用传 reasoning_effort=high：受控参数被丢弃 |  |
+| PASS | 降级请求：插件在路由前记录逻辑名 | policy_check: pass (stub) call_id=f2d926ad-3bb5-41bf-8c75-b520a2cf8332 model=chat-default key_alias=p2-test ca… |
+| PASS | 降级请求只经过插件一次 | 钩子在路由之前，降级发生在钩子之后 |
+| PASS | 插件日志带 key 别名 |  |
+<!-- END plugin -->
+
+<!-- BEGIN nolog -->
+## 日志不存原文
+
+_2026-10-23 21:02，PASS 3 / WARN 1 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 发送带标记串的请求 | 标记 CANARY-ab6…，call_id a4939b4f…，回答不含标记 |
+| WARN | 费用日志已记录这次请求（证明日志在工作） | 行数 0 |
+| PASS | 整库导出搜不到标记串 | 导出 224 KB |
+| PASS | 三个容器的日志搜不到标记串 | 日志 27 KB |
+<!-- END nolog -->
