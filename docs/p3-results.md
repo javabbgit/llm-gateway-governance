@@ -83,32 +83,34 @@ _2026-10-24 11:52，PASS 4 / WARN 0 / FAIL 0_
 <!-- BEGIN org -->
 ## 组织：团队与 key
 
-_2026-10-24 12:04，PASS 8 / WARN 0 / FAIL 0_
+_2026-10-25 11:24，PASS 9 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | 更新团队 underwriting | 模型 chat-default,chat-fallback；预算 $2.0/30d；60 RPM |
 | PASS |   更新 key uw-loan-assistant | sk-lax… |
-| PASS | 更新团队 marketing | 模型 chat-default,chat-fallback,chat-cloud；预算 $2.0/30d；60 RPM |
+| PASS | 更新团队 marketing | 模型 chat-default,chat-fallback,chat-cloud,chat-deepseek；预算 $2.0/30d；60 RPM |
 | PASS |   更新 key mkt-copywriter | sk-AH0… |
-| PASS | 更新团队 it-ops | 模型 chat-default,chat-fallback,chat-cloud；预算 $0.5/30d；30 RPM |
+| PASS | 更新团队 it-ops | 模型 chat-default,chat-fallback,chat-cloud,chat-deepseek；预算 $0.5/30d；30 RPM |
 | PASS |   更新 key ops-runbook-bot | sk-c2g… |
-| PASS |   更新 key demo-budget | sk-uMi… |
+| PASS |   更新 key demo-budget | sk-DQ9… |
 | PASS |   更新 key demo-ratelimit | sk-P3U… |
+| PASS |   创建 key demo-cloud-only | sk-V-H…；继承团队；存 .secrets/p3-keys.json |
 <!-- END org -->
 
 <!-- BEGIN access -->
 ## 团队模型白名单
 
-_2026-10-24 12:34，PASS 8 / WARN 0 / FAIL 0_
+_2026-10-25 11:24，PASS 8 / WARN 0 / FAIL 1_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
 | PASS | uw-loan-assistant（underwriting）只看到本团队模型 | chat-default, chat-fallback |
-| PASS | mkt-copywriter（marketing）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
-| PASS | ops-runbook-bot（it-ops）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
-| PASS | demo-budget（it-ops）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
-| PASS | demo-ratelimit（it-ops）只看到本团队模型 | chat-cloud, chat-default, chat-fallback |
+| PASS | mkt-copywriter（marketing）只看到本团队模型 | chat-cloud, chat-deepseek, chat-default, chat-fallback |
+| PASS | ops-runbook-bot（it-ops）只看到本团队模型 | chat-cloud, chat-deepseek, chat-default, chat-fallback |
+| FAIL | demo-budget（it-ops）只看到本团队模型 |  |
+| PASS | demo-ratelimit（it-ops）只看到本团队模型 | chat-cloud, chat-deepseek, chat-default, chat-fallback |
+| PASS | demo-cloud-only（it-ops）只看到本团队模型 | chat-cloud, chat-deepseek |
 | PASS | 审批团队调用本地 chat-default | 200 pong |
 | PASS | 审批团队调用云端 chat-cloud 被拒 | HTTP 403：The requested model 'chat-cloud' is not available for this API key, or the model name is invalid. Check the models avail… |
 | PASS | 市场团队调用云端 chat-cloud | 200 Ping |

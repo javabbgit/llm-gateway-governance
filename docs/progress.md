@@ -101,7 +101,7 @@
 
 验收（对应总纲第 8 节；步骤见 P4 详细操作步骤文档）
 
-- [ ] P4a：Presidio 锁定镜像、无对外端口、健康；检测率报告已生成（`infra`、`detect`）
+- [x] P4a：Presidio 锁定镜像、无对外端口、健康；检测率报告已生成（`infra`、`detect`）
 - [ ] P4b：处置矩阵每一格都有测试用例并通过（`unit`）
 - [ ] P4c：改道目标不在白名单时阻断（R10），白名单结论已记录（`allowlist`）
 - [ ] P4c：语料逐条处置与策略一致，改道的都由本地模型回答（`route`）
@@ -118,3 +118,4 @@
 | 步骤 | 原计划 | 实际 | 原因 |
 | --- | --- | --- | --- |
 | P4a 步骤 1 | 锁定 PyPI 最新版 2.2.364 | 锁定 MCR 最新版 2.2.362；SIN 改用自写识别器 | MCR 镜像比 PyPI 慢，2.2.364 无镜像；2.2.362 没有自带 CaSinRecognizer |
+| P4a 步骤 3 | access 全部 PASS | demo-budget 一项 FAIL（HTTP 422 Budget exceeded） | 该 key 的预算在 P3 budget 检查中已按设计用完，超预算的 key 连 /v1/models 都被拒绝；与 P4 无关 |
