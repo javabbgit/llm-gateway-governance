@@ -22,8 +22,8 @@ rpm_limit = 60
 
 [[team]]
 alias = "marketing"
-note = "市场：不处理客户数据，可用本地与已批准的云端模型"
-models = ["chat-default", "chat-fallback", "chat-cloud"]
+note = "市场：不处理客户数据，可用本地与已批准的云端模型；P4 起也能用模拟的 chat-deepseek（含 PII 时被改道）"
+models = ["chat-default", "chat-fallback", "chat-cloud", "chat-deepseek"]
 max_budget = 2.00
 budget_duration = "30d"
 rpm_limit = 60
@@ -35,7 +35,7 @@ rpm_limit = 60
 [[team]]
 alias = "it-ops"
 note = "运维：开发测试，模型全开，预算最紧"
-models = ["chat-default", "chat-fallback", "chat-cloud"]
+models = ["chat-default", "chat-fallback", "chat-cloud", "chat-deepseek"]
 max_budget = 0.50
 budget_duration = "30d"
 rpm_limit = 30
@@ -53,3 +53,8 @@ rpm_limit = 30
   alias = "demo-ratelimit"
   note = "演示：每分钟 5 次，第 6 次返回 429"
   rpm_limit = 5
+
+  [[team.key]]
+  alias = "demo-cloud-only"
+  note = "P4 演示：只能用云端与 DeepSeek，没有本地模型；含 PII 的请求无处可改道，被阻断（规则 R10）"
+  models = ["chat-cloud", "chat-deepseek"]

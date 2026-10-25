@@ -37,9 +37,20 @@ model_list:
       # 单价不写：用镜像自带价格表（$0.10 / $0.50 每 1M，提示 ≤10 万 token 档），对账时核对
     model_info:
       jurisdiction: US
+  - model_name: chat-deepseek
+    litellm_params:
+      # 模拟部署（P4 决策 21）：mock_response 让 LiteLLM 直接返回固定文本，不发出任何网络请求、零费用。
+      # 它代表“未获批准的境外供应商”：没有 PII 的请求照常拿到回答，含 PII 或无法检测的请求被改道到本地。
+      model: deepseek/deepseek-chat
+      api_key: mock-not-used               # 占位；模拟部署不读取，也不是真实密钥
+      mock_response: "[mock DeepSeek] This answer comes from the simulated chat-deepseek deployment; no data left the gateway."
+      input_cost_per_token: 0
+      output_cost_per_token: 0
+    model_info:
+      jurisdiction: CN                     # P4 策略：CN 属于未批准类别
 
 router_settings:
-  # 只在本地模型之间降级；绝不从本地降级到云端，也不从云端降级到本地（P4 由策略决定改道）
+  # 只在本地模型之间降级；绝不从本地降级到云端，也不从云端降级到本地（改道由 P4 插件按 governance/policy.toml 决定）
   fallbacks:
     - chat-default: [chat-fallback]
   num_retries: 0                          # 演示时一次失败就降级，日志清楚

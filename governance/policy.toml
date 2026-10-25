@@ -1,0 +1,97 @@
+# Demo Mortgage Co. —— PII 数据驻留策略（P4）。合规部门审批的唯一来源，与 IT 管的 litellm/config.yaml 分开。
+# 改这里 → 提交 → docker compose restart litellm（插件只在启动时读取；读不出或校验失败时一律阻断）。
+# 供应商属性（jurisdiction）写在 config.yaml 每个逻辑名的 model_info 里；这里只决定每种属性归哪一类、每一格怎么处置。
+
+version = "2026-10-p4"
+
+# 执行模式：off = 不检测，只做 P3 的受控参数处理（P4a/P4b 用）；
+#           route = 检测、改道、阻断、审计，需要脱敏的格子先按改道处理（P4c 用）；
+#           full = 全部生效，含脱敏与还原（P4d 起，最终状态）。
+# 用 python3 scripts/p4check.py mode <模式> 切换，它会改这一行并重启 LiteLLM。
+enforcement = "off"
+
+# 改道目标：只能是本地模型。它自己的降级链（chat-default → chat-fallback）照常生效。
+reroute_target = "chat-default"
+
+# 改道目标不在调用方 key 或团队白名单里时：阻断（规则 R10）
+block_rule = "R10"
+
+[jurisdictions]
+# model_info.jurisdiction → 类别。未列出或未标注的一律按 default_class 处理（宁严勿松）。
+local = "local"
+US = "approved"        # Anthropic：演示假设已签数据处理协议
+CN = "unapproved"      # DeepSeek：未获批准
+default_class = "unapproved"
+
+[levels]
+# 每种实体只能出现在一个级别里。未列出的实体（城市名、日期、URL、机构名）不算 PII（决策 27）。
+high = ["CA_SIN", "CREDIT_CARD", "CA_BANK_ACCOUNT", "IBAN_CODE"]
+general = ["PERSON", "PHONE_NUMBER", "EMAIL_ADDRESS", "CA_POSTAL_CODE", "STREET_ADDRESS"]
+
+# 处置矩阵：类别 × 级别，九格各一条规则。action 只能是 pass、redact、reroute。
+# 检测器故障、文本非英文时，级别一律按 high 计（原因另记在审计表的 reason 列）。
+[[rule]]
+id = "R1"
+class = "local"
+level = "none"
+action = "pass"
+
+[[rule]]
+id = "R2"
+class = "local"
+level = "general"
+action = "pass"
+
+[[rule]]
+id = "R3"
+class = "local"
+level = "high"
+action = "pass"
+
+[[rule]]
+id = "R4"
+class = "approved"
+level = "none"
+action = "pass"
+
+[[rule]]
+id = "R5"
+class = "approved"
+level = "general"
+action = "redact"
+
+[[rule]]
+id = "R6"
+class = "approved"
+level = "high"
+action = "reroute"
+
+[[rule]]
+id = "R7"
+class = "unapproved"
+level = "none"
+action = "pass"
+
+[[rule]]
+id = "R8"
+class = "unapproved"
+level = "general"
+action = "reroute"
+
+[[rule]]
+id = "R9"
+class = "unapproved"
+level = "high"
+action = "reroute"
+
+[detector]
+# Presidio analyzer 的地址由环境变量 PRESIDIO_URL 提供（docker-compose.yml）。
+timeout_seconds = 3.0        # 超时或出错 → 检测器不可用 → 按 high 处理（fail-closed）
+score_threshold = 0.4        # 沙盒实测：0.5 会漏掉无上下文的电话（0.40）和带上下文的纯数字 SIN（0.05+0.35）
+language = "en"              # 只做英文检测（决策 25、26）
+# 这些词不当作 PII（产品名、公司名常被 spaCy 误认成人名）。完全匹配。
+allow_list = ["Claude", "Haiku", "Sonnet", "Opus", "Anthropic", "DeepSeek", "Presidio", "LiteLLM", "Ollama", "Qwen", "Llama", "Demo Mortgage Co."]
+
+[language]
+# 非英文判定（决策 26）：任一条消息含非拉丁字母，或法语、西语常用词至少 min_hits 个且多于英文常用词。
+min_hits = 3

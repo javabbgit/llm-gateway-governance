@@ -1,0 +1,24 @@
+{"id": "N01", "text": "Write a one-line tagline for our spring mortgage renewal campaign in Toronto and Vancouver.", "lang": "en", "expect": [], "pii": [], "note": "城市名不算 PII"}
+{"id": "N02", "text": "Summarize the benefits of a 5-year fixed-rate mortgage in three short bullet points.", "lang": "en", "expect": [], "pii": []}
+{"id": "N03", "text": "Order 123456782 shipped on March 3 and should arrive by Friday.", "lang": "en", "expect": [], "pii": [], "note": "9 位数字能过 Luhn，但没有 SIN 上下文"}
+{"id": "N04", "text": "Ask Claude Haiku to draft three FAQ answers about prepayment privileges.", "lang": "en", "expect": [], "pii": [], "note": "allow_list：Claude、Haiku 不算人名"}
+{"id": "N05", "text": "The branch is on the way to the airport; meet at 5 pm on the second floor.", "lang": "en", "expect": [], "pii": [], "note": "街道地址模式的误报陷阱"}
+{"id": "N06", "text": "SIN 123 456 789 is the classic example of an invalid number.", "lang": "en", "expect": [], "pii": [], "note": "格式像 SIN 但 Luhn 不通过，插件丢弃"}
+{"id": "G01", "text": "Draft a short thank-you note to Emily Tremblay for choosing us for her renewal.", "lang": "en", "expect": ["PERSON"], "pii": ["Emily Tremblay"]}
+{"id": "G02", "text": "Send the renewal reminder to emily.tremblay@example.com before Friday.", "lang": "en", "expect": ["EMAIL_ADDRESS"], "pii": ["emily.tremblay@example.com"]}
+{"id": "G03", "text": "Please call the client back at 416-555-0199 tomorrow morning.", "lang": "en", "expect": ["PHONE_NUMBER"], "pii": ["416-555-0199"]}
+{"id": "G04", "text": "The property is at 250 Front Street West, Toronto, ON M5V 3L9.", "lang": "en", "expect": ["STREET_ADDRESS", "CA_POSTAL_CODE"], "pii": ["250 Front Street West", "M5V 3L9"]}
+{"id": "G05", "text": "Rajesh Patel asked us to email him at r.patel@example.org or phone (647) 555-0142.", "lang": "en", "expect": ["PERSON", "EMAIL_ADDRESS", "PHONE_NUMBER"], "pii": ["Rajesh Patel", "r.patel@example.org", "(647) 555-0142"]}
+{"id": "G06", "text": "Schedule a call with José Martínez about the renewal options.", "lang": "en", "expect": ["PERSON"], "pii": ["José Martínez"], "note": "英文句子里的西语人名，不算外语"}
+{"id": "G07", "messages": [{"role": "user", "content": "Who is the primary borrower on file 2231?"}, {"role": "assistant", "content": "The primary borrower is Priya Sharma."}, {"role": "user", "content": "Draft a polite payment reminder for that borrower."}], "lang": "en", "expect": ["PERSON"], "pii": ["Priya Sharma"], "note": "PII 只在历史轮次里"}
+{"id": "H01", "text": "Applicant SIN: 193 456 787. Please verify the employment letter.", "lang": "en", "expect": ["CA_SIN"], "pii": ["193 456 787"]}
+{"id": "H02", "text": "Her social insurance number is 130692544, per the application form.", "lang": "en", "expect": ["CA_SIN"], "pii": ["130692544"], "note": "纯数字 SIN，靠上下文词"}
+{"id": "H03", "text": "Charge the appraisal fee to card 4111 1111 1111 1111, expiry 09/29.", "lang": "en", "expect": ["CREDIT_CARD"], "pii": ["4111 1111 1111 1111"]}
+{"id": "H04", "text": "Set up the pre-authorized debit from bank account 00123-004-1234567.", "lang": "en", "expect": ["CA_BANK_ACCOUNT"], "pii": ["00123-004-1234567"]}
+{"id": "H05", "text": "Borrower Daniel Wong, SIN 527-893-416, requested a payment deferral.", "lang": "en", "expect": ["PERSON", "CA_SIN"], "pii": ["Daniel Wong", "527-893-416"], "note": "高敏感 + 一般敏感"}
+{"id": "L01", "text": "写一句春季房贷续约的广告语。", "lang": "zh", "expect": null, "pii": [], "note": "中文，无 PII；非英文用例不计入检测率，处置由语言判定决定"}
+{"id": "L02", "text": "请把续约提醒发给客户张伟，电话 416-555-0199。", "lang": "zh", "expect": null, "pii": ["张伟", "416-555-0199"], "note": "中文人名检测不到，正则类仍可命中；非英文用例不计入检测率，处置由语言判定决定"}
+{"id": "L03", "text": "Bonjour, veuillez envoyer le dossier de renouvellement à Marie Gagnon avant vendredi.", "lang": "fr", "expect": null, "pii": ["Marie Gagnon"], "note": "法语；人名漏检正是要按无法检测处理的原因；非英文用例不计入检测率，处置由语言判定决定"}
+{"id": "L04", "text": "Hola, por favor envíe la carta con la tasa nueva a Carlos Ruiz.", "lang": "es", "expect": null, "pii": ["Carlos Ruiz"], "note": "非英文用例不计入检测率，处置由语言判定决定"}
+{"id": "L05", "text": "Merci! Please send the summary to the team.", "lang": "en", "expect": [], "pii": [], "note": "单个法语词不算外语"}
+{"id": "L06", "text": "Пожалуйста, подготовьте письмо клиенту.", "lang": "ru", "expect": null, "pii": [], "note": "西里尔字母；非英文用例不计入检测率，处置由语言判定决定"}

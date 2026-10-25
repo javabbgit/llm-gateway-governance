@@ -17,6 +17,7 @@
       "Bash(python3 scripts/p1check.py:*)",
       "Bash(python3 scripts/p2check.py:*)",
       "Bash(python3 scripts/p3check.py:*)",
+      "Bash(python3 scripts/p4check.py:*)",
       "Bash(bash scripts/pin-image.sh:*)",
       "Bash(bash scripts/pull-models.sh)",
       "Bash(git status:*)",
@@ -45,6 +46,7 @@
       "Edit(./.secrets/**)",
       "Bash(bash scripts/gen-secrets.sh:*)",
       "Bash(python3 scripts/p3check.py admin:*)",
+      "Bash(python3 scripts/p4check.py mode:*)",
       "Read(./.env.*)",
       "Edit(./.env.*)",
       "Bash(cat .secrets:*)"

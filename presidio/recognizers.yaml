@@ -1,0 +1,75 @@
+# Presidio analyzer 识别器清单（P4）。挂进官方镜像，由 RECOGNIZER_REGISTRY_CONF_FILE 指向本文件，不自建镜像。
+# 本文件替换镜像自带的 default_recognizers.yaml，所以只列出需要的识别器：
+#   - 预置：信用卡（自带 Luhn 校验）、邮箱、电话、IBAN；不加美国 SSN（9 位 SIN 会被它误标成 US_SSN）；人名由 spaCy（en_core_web_lg）的 NER 识别，引擎自动加载
+#   - 加拿大 SIN：Presidio 自带 CaSinRecognizer（含 Luhn 校验，默认关闭），这里启用；插件里再做一次 Luhn 作为纵深防御
+#   - 自写（加拿大）：银行账号、邮编，以及英文街道地址
+# 分数：带分隔符的格式给 0.6；纯数字只给 0.2，必须靠上下文词加分（+0.35）才能超过策略里的阈值。
+# 实体名与 governance/policy.toml 的分级表一一对应；这里加了实体而策略里没写，插件不会请求它。
+supported_languages:
+  - en
+global_regex_flags: 26          # re.DOTALL | re.MULTILINE | re.IGNORECASE
+
+recognizers:
+  - name: CreditCardRecognizer
+    supported_languages:
+    - language: en
+      context: [credit, card, visa, mastercard, cc, amex]
+    type: predefined
+
+  - name: EmailRecognizer
+    type: predefined
+
+  - name: PhoneRecognizer
+    type: predefined
+
+  - name: IbanRecognizer
+    type: predefined
+
+  - name: CaSinRecognizer             # Presidio 2.2.364 自带，含 Luhn 校验，默认关闭；这里启用
+    supported_languages:
+    - en
+    type: predefined
+    country_code: ca
+
+  - name: CaSinPlainRecognizer        # 补充：自带识别器的纯 9 位模式只有 0.05 分，且上下文只认 sin 一个单词
+    supported_language: en
+    supported_entity: CA_SIN
+    type: custom
+    patterns:
+      - name: sin_plain                     # 130692544；Luhn 校验在插件里做
+        regex: "\\b[1-79]\\d{8}\\b"
+        score: 0.2
+    context: [sin, social, insurance, nas]
+
+  - name: CaBankAccountRecognizer
+    supported_language: en
+    supported_entity: CA_BANK_ACCOUNT
+    type: custom
+    patterns:
+      - name: transit_institution_account   # 00123-004-1234567（分行 5 位 - 机构 3 位 - 账号 7 到 12 位）
+        regex: "\\b\\d{5}[- ]\\d{3}[- ]\\d{7,12}\\b"
+        score: 0.6
+      - name: account_digits                # 账号单独出现，只有上下文词在场才算
+        regex: "\\b\\d{7,12}\\b"
+        score: 0.2
+    context: [account, chequing, checking, savings, transit, deposit, "bank account"]
+
+  - name: CaPostalCodeRecognizer
+    supported_language: en
+    supported_entity: CA_POSTAL_CODE
+    type: custom
+    patterns:
+      - name: postal_code                   # M5V 3L9；首字母不含 D F I O Q U W Z
+        regex: "\\b[ABCEGHJ-NPRSTVXY]\\d[ABCEGHJ-NPRSTV-Z][ -]?\\d[ABCEGHJ-NPRSTV-Z]\\d\\b"
+        score: 0.6
+    context: [postal, address, mail]
+
+  - name: StreetAddressRecognizer
+    supported_language: en
+    supported_entity: STREET_ADDRESS
+    type: custom
+    patterns:
+      - name: number_street_type            # 250 Front Street West / 12 King St E
+        regex: "\\b\\d{1,6}[A-Z]?\\s+(?:[A-Z][a-z]+\\.?\\s+){1,3}(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Drive|Dr|Crescent|Cres|Court|Ct|Lane|Ln|Way|Place|Pl|Parkway|Pkwy|Circle|Cir|Trail|Terrace|Highway|Hwy)\\b\\.?(?:\\s+(?:East|West|North|South|E|W|N|S)\\b)?"
+        score: 0.6
+    context: [address, street, live, lives, property, mail]

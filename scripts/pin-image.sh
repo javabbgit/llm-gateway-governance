@@ -3,6 +3,7 @@
 # 用法：bash scripts/pin-image.sh ollama   [版本]   # 默认取 GitHub 上 ollama/ollama 的最新正式版
 #       bash scripts/pin-image.sh litellm  [标签]   # 默认取 BerriAI/litellm 标为 Latest 的正式版，如 v1.106.2
 #       bash scripts/pin-image.sh postgres [大版本] # 默认 17，解析成具体小版本，例如 17.6
+#       bash scripts/pin-image.sh presidio [版本]   # 默认取 PyPI 上 presidio-analyzer 的最新版，如 2.2.364
 #       bash scripts/pin-image.sh 0.40.8            # 兼容 P1 写法：等同 ollama 0.40.8
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -41,7 +42,14 @@ case "$svc" in
     [[ "$pgv" =~ ^${major}\.[0-9]+$ ]] || fail "解析不出 Postgres 小版本：'${pgv}'"
     tag="$pgv"; source_note="Docker Hub 官方镜像 postgres:${major} 当前的小版本 ${pgv}"
     ;;
-  *) fail "未知服务：${svc}（可选 ollama、litellm、postgres）";;
+  presidio)
+    repo="mcr.microsoft.com/presidio-analyzer"
+    tag="$arg"
+    [[ -z "$tag" ]] && tag="$(curl -fsS https://pypi.org/pypi/presidio-analyzer/json 2>/dev/null | jq -r .info.version || true)"
+    [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "取不到 Presidio 的正式版本号：'${tag}'。到 pypi.org/project/presidio-analyzer 查，再运行 bash scripts/pin-image.sh presidio <版本>"
+    source_note="Microsoft Presidio 官方镜像（MCR），版本与 PyPI 的 presidio-analyzer ${tag} 一致"
+    ;;
+  *) fail "未知服务：${svc}（可选 ollama、litellm、postgres、presidio）";;
 esac
 
 image="${repo}:${tag}"

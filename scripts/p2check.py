@@ -47,7 +47,8 @@ ALIASES_LOCAL = ["chat-default", "chat-fallback"]
 ALIAS_CLOUD = "chat-github"
 GH_MODEL = "openai/gpt-4.1-mini"
 SERVICES = ["ollama", "postgres", "litellm"]
-IMAGE_REPOS = {"ollama": "ollama/ollama", "postgres": "postgres", "litellm": "ghcr.io/berriai/litellm"}
+IMAGE_REPOS = {"ollama": "ollama/ollama", "postgres": "postgres", "litellm": "ghcr.io/berriai/litellm",
+               "presidio": "mcr.microsoft.com/presidio-analyzer"}
 
 
 # ---------- 报告 ----------
