@@ -63,6 +63,16 @@ class Demo(unittest.TestCase):
     def test_clean_masks_fake_sin(self):
         self.assertNotIn(demo.FAKE_SIN, demo.clean(f"SIN {demo.FAKE_SIN} and {demo.FAKE_SIN.replace(' ', '')}"))
 
+    def test_scrub_error_text(self):
+        msg = ("Rate limit exceeded for api_key: 6471b04b7e11a6c20caf2efa71e2ecd533503ce227c82d759dfef8072aa1. "
+               "Current cost: 0.00022449999999999995, Max budget: 0.0002")
+        out = demo.scrub(msg)
+        self.assertIn("6471b04b…", out)
+        self.assertNotIn("6471b04b7e11a6c20caf", out)
+        self.assertIn("0.000224,", out)
+        self.assertIn("Max budget: 0.0002", out)
+        self.assertNotIn(demo.FAKE_SIN, demo.scrub(f"SIN {demo.FAKE_SIN}"))
+
     def test_forced_offline(self):
         os.environ["DEMO_OFFLINE"] = "1"
         try:

@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import socket
 import sys
 import threading
@@ -72,6 +73,13 @@ def text_of(r: base.Resp) -> str:
 def clean(s: str) -> str:
     """Never echo the fake identifiers back verbatim on screen."""
     return s.replace(FAKE_SIN, "<SIN>").replace(FAKE_SIN.replace(" ", ""), "<SIN>")
+
+
+def scrub(s: str) -> str:
+    """Gateway error text can carry a key hash (LiteLLM's 429) or a long float (budget error): shorten both."""
+    s = re.sub(r"\b[0-9a-f]{32,}\b", lambda m: m.group()[:8] + "…", s)
+    s = re.sub(r"\d+\.\d{7,}", lambda m: f"{float(m.group()):.6f}", s)
+    return clean(s)
 
 
 def internet_ok(timeout: float = 3.0) -> bool:
@@ -274,12 +282,12 @@ class Demo:
         s.ids.append(p4.call_id(r))
         s.lines = [f"HTTP {r.status} in {r.secs:.1f} s · served by {grp} · fallbacks attempted {tries}"]
         if r.status != 200:
-            s.lines.append(snip(r.err_msg(), 100))
+            s.lines.append(snip(scrub(r.err_msg()), 100))
         return r.status == 200 and grp == "chat-fallback" and tries not in ("0", "?")
 
     def s4(self, s: Scene) -> bool:
         r = chat("chat-cloud", UW, PONG)
-        s.lines = [f"HTTP {r.status}: {snip(r.err_msg(), 100)}"]
+        s.lines = [f"HTTP {r.status}: {snip(scrub(r.err_msg()), 100)}"]
         return r.status in (401, 403)
 
     def s5(self, s: Scene) -> bool:
@@ -291,7 +299,7 @@ class Demo:
                 s.ids.append(p4.call_id(last))
         s.lines = ["requests 1–6 → " + " ".join(str(x) for x in codes)]
         if last is not None and last.status == 429:
-            s.lines.append(f"429: {snip(last.err_msg(), 90)}")
+            s.lines.append(f"429: {snip(scrub(last.err_msg()), 90)}")
         ok = codes[:5] == [200] * 5 and codes[5] == 429
         if not ok and 429 in codes[:5]:
             s.note = "window still open from an earlier run: bash scripts/reset.sh, then retry"
@@ -313,7 +321,7 @@ class Demo:
         msg = last.err_msg() if last is not None and last.status != 200 else ""
         spent = f" (≈${cost:.6f})" if cost else ""
         s.lines = [f"allowed {allowed} call(s){spent}, then HTTP {last.status if last else '?'}",
-                   snip(msg, 100) if msg else "never blocked within 12 calls"]
+                   snip(scrub(msg), 100) if msg else "never blocked within 12 calls"]
         if allowed == 0 and "budget" in msg.lower():
             s.note = "budget already used up by an earlier run: bash scripts/reset.sh, then retry"
         return bool(msg) and "budget" in msg.lower() and allowed >= 1
