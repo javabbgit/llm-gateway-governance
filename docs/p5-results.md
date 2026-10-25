@@ -118,3 +118,33 @@ _2026-10-25 16:47，PASS 6 / WARN 0 / FAIL 0_
 
 真实断网验证完成后记得恢复网络。
 <!-- END offline-real -->
+
+<!-- BEGIN size -->
+## 磁盘占用（快照瘦身前）
+
+_2026-10-25 17:02，PASS 1 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| INFO | docker system df | TYPE TOTAL ACTIVE SIZE RECLAIMABLE |
+| INFO | docker system df | Images 4 4 12.44GB 0B (0%) |
+| INFO | docker system df | Containers 4 4 62.26MB 0B (0%) |
+| INFO | docker system df | Local Volumes 2 2 3.563GB 0B (0%) |
+| INFO | docker system df | Build Cache 0 0 0B 0B |
+| INFO | 在用 ollama/ollama:0.40.8 | 8.41GB，2b8eecdb85aa |
+| INFO | 在用 ghcr.io/berriai/litellm:v1.106.2 | 1.8GB，7294b90f868c |
+| INFO | 可删 postgres:17 | 646MB，b8faeff77126 |
+| INFO | 在用 postgres:17.11 | 646MB，b8faeff77126 |
+| INFO | 在用 mcr.microsoft.com/presidio-analyzer:2.2.362 | 1.58GB，286e3fa7f3a7 |
+| INFO | 卷 llm-gateway-governance_ollama-models | 3.49GB（不可删：模型） |
+| INFO | 卷 llm-gateway-governance_pg-data | 73.24MB（不可删：key 与审计） |
+| PASS | 可删镜像（compose 未引用或悬空） | 1 个：postgres:17 |
+
+快照是整个发行版的文件，镜像层占大头。可删的只有上表标“可删”的镜像和构建缓存；卷绝不删。删除由人工运行 python3 scripts/p5check.py slim。
+<!-- END size -->
+
+<!-- BEGIN keepalive -->
+## WSL 保活
+
+keepalive.ps1 start 后关闭全部 Ubuntu 窗口 2 分钟：status 显示 Ubuntu-24.04 Running，Windows 侧 curl 网关返回 I am alive。
+<!-- END keepalive -->
