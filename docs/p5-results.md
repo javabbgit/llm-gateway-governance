@@ -5,7 +5,7 @@
 <!-- BEGIN docs -->
 ## README 与 ADR
 
-_2026-10-25 16:00，PASS 10 / WARN 0 / FAIL 0_
+_2026-10-25 17:25，PASS 10 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
