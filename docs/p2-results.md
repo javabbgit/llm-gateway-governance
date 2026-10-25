@@ -227,3 +227,10 @@ _2026-10-23 23:14，PASS 10 / WARN 0 / FAIL 0_
 
 2026-10-24：p2-core.tar 导入为独立发行版 p2-verify，p2check persist 5/5 PASS（冷启动后 chat-default 2.1s），验证后已注销副本。
 <!-- END restore -->
+
+<!-- BEGIN pin-presidio -->
+## 镜像锁定：presidio
+
+- 镜像：`mcr.microsoft.com/presidio-analyzer:2.2.362@sha256:286e3fa7f3a7426e775e8564fe1870f1ba8f999d3ab8bbb8cc46a44355d9d6e9`
+- 来源：Microsoft Presidio 官方镜像（MCR），取 MCR 标签列表里最新的正式版本号 2.2.362，锁定于 2026-10-25 11:05
+<!-- END pin-presidio -->
