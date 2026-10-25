@@ -143,3 +143,4 @@
 | 步骤 | 原计划 | 实际 | 原因 |
 | --- | --- | --- | --- |
 | 步骤 3 | 报错原样显示 | 报错文本去掉 key 哈希、长小数取 6 位（修正 1） | 429 报错带 LiteLLM key 哈希，会进录像 |
+| 步骤 4 | Presidio 健康检查每 30 秒一次 | 加 start_interval: 2s；演示重启 Presidio 后等 Docker 状态 healthy（修正 2） | 连续演示第 3 次预检读到 starting |

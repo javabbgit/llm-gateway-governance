@@ -68,6 +68,7 @@ services:
       timeout: 5s
       retries: 3
       start_period: 120s                   # 首次启动要加载 spaCy 的 en_core_web_lg
+      start_interval: 2s                   # P5 修正 2：启动期内每 2 秒检查一次（Docker 25+）；重启后几秒内转 healthy，不用等满 30 秒
     logging: *logging
 
   litellm:

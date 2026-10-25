@@ -66,3 +66,23 @@ _2026-10-25 16:04，PASS 6 / WARN 0 / FAIL 0_
 
 管理界面看不到 governance.pii_audit，这个脚本是它的命令行视图（总纲决策 11）。
 <!-- END audit -->
+
+<!-- BEGIN repeat -->
+## demo.sh 连续运行 3 次
+
+_2026-10-25 16:22，PASS 2 / WARN 0 / FAIL 1_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 第 1 次 | PASS 9 / FAIL 0 / SKIP 0，审计 PASS，21 秒 |
+| PASS | 第 2 次 | PASS 9 / FAIL 0 / SKIP 0，审计 PASS，20 秒 |
+| FAIL | 第 3 次 | PASS None / FAIL None / SKIP None，审计 None，1 秒 |
+
+每次运行开头自动重置（重建 demo-budget 与 demo-ratelimit），所以不用等限流窗口过去。
+
+| 次 | 退出码 | PASS | FAIL | SKIP | 审计 | 秒 | 场景 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 0 | 9 | 0 | 0 | PASS | 21 | 1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS |
+| 2 | 0 | 9 | 0 | 0 | PASS | 20 | 1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS |
+| 3 | 1 | None | None | None | None | 1 |  |
+<!-- END repeat -->

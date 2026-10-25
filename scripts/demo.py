@@ -138,10 +138,24 @@ def rebuild_key(alias: str) -> tuple[bool, str]:
     return True, f"rebuilt ({detail}; spend 0, fresh window)"
 
 
+def docker_health(svc: str) -> str:
+    cid = base.container_id(svc)
+    return base.inspect(cid, "{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}") if cid else "not running"
+
+
 def ensure_presidio(timeout: int = 120) -> float:
+    """Presidio answers before Docker marks it healthy again (status stays "starting" until the next health
+    check), and the preflight reads the Docker status, so wait for both. Fix 2: run 3 of 3 failed on this."""
+    t0 = time.time()
     run(["docker", "compose", "unpause", PRESIDIO], timeout=60)     # no-op unless a run was killed mid-scene 9
     run(["docker", "compose", "start", PRESIDIO], timeout=120)
-    return p4.presidio_health(timeout=timeout)
+    if p4.presidio_health(timeout=timeout) < 0:
+        return -1
+    while time.time() - t0 < timeout:
+        if docker_health(PRESIDIO) == "healthy":
+            return time.time() - t0
+        time.sleep(2)
+    return -1
 
 
 def do_reset(quiet: bool = False) -> bool:
