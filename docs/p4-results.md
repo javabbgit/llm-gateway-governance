@@ -101,14 +101,14 @@ _2026-10-25 11:42，PASS 3 / WARN 0 / FAIL 0_
 <!-- BEGIN mode -->
 ## 策略模式切换
 
-_2026-10-25 11:57，PASS 5 / WARN 0 / FAIL 0_
+_2026-10-25 12:48，PASS 5 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
-| PASS | policy.toml | enforcement = "route"（未变） |
+| PASS | policy.toml | enforcement = "full" |
 | PASS | docker compose restart litellm | Container llm-gateway-governance-litellm-1 Restarting Container llm-gateway-gove… |
 | PASS | 网关恢复 | 12 秒 |
-| PASS | 插件以新模式运行 | 5:57:43.683+00:00 policy_check: pass (p4-route) call_id=80bc3be2-5264-4565-ad14-58386359480e model=c… |
+| PASS | 插件以新模式运行 | 6:48:20.909+00:00 policy_check: pass (p4-full) call_id=5b2d567e-8bc0-48ee-8c09-223ce2777313 model=ch… |
 | PASS | 审计写入可用（刚才的请求已写进审计表） | outcome=success |
 
 记得把 policy.toml 的这次改动和本小节一起提交：模式切换本身是需要审计的策略变更。
@@ -227,3 +227,35 @@ _2026-10-25 12:03，PASS 4 / WARN 0 / FAIL 0_
 | PASS | governance schema 导出里搜不到语料中的任何 PII | 搜索 19 个假 PII 值，命中 0 个（导出 15 KB） |
 | INFO | 审计表按处置汇总 | block/1；pass/34；reroute/35 |
 <!-- END audit -->
+
+<!-- BEGIN redact -->
+## P4d 脱敏（非流式）【计费】
+
+_2026-10-25 12:48，PASS 5 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=full |
+| PASS | 一般敏感发往 chat-cloud → 脱敏（R5） | 200 pii=PERSON:1 |
+| PASS | 回答里的占位符已还原成原文 | 含原名、无残留占位符 |
+| PASS | 云端模型看到的是占位符（它回答 YES） | YES |
+| PASS | 审计：redacted≥1，实际模型 chat-cloud | redacted=1 served=chat-cloud |
+
+云端拿不到原文的直接证据：它回答 YES，说明收到的句子里是 [PERSON_1]；单元测试另外断言发出的 messages 里没有原文。
+<!-- END redact -->
+
+<!-- BEGIN stream -->
+## P4d 脱敏（流式）【计费】
+
+_2026-10-25 12:48，PASS 5 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=full |
+| PASS | 流式请求同样脱敏（R5） | 200 pii=PERSON:1 |
+| PASS | 仍是标准 SSE：多个 data 块并以 [DONE] 结束 | 5 块 |
+| PASS | 拼起来的回答已还原 | 含原名、无残留占位符 |
+| PASS | 不需要还原的流式照常逐块输出（本地，零费用） | 31 块 |
+
+需要还原的流式请求要等云端生成完才开始输出（决策 23 的代价），协议本身不变。
+<!-- END stream -->
