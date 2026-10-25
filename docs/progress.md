@@ -29,6 +29,7 @@
 | p2-core | 2026-10-23 | 16.27 GB | 71c859a963e4e7ed |
 | p3-governance | 2026-10-24 | 16.31 GB | 22178ed033726424 |
 | p4c-routing | 2026-10-25 | 17.78 GB | 6e22b56b4179e9b3 |
+| p4-guardrails | 2026-10-25 | <大小> | <SHA256 前 16 位> |
 
 ## P0 实测环境基线（2026-10-22）
 
@@ -112,7 +113,7 @@
 - [x] P4e：非英文按无法检测处理（`lang`）
 - [x] P4e：云端与改道请求都不存原文（`nolog`）；重启后保持（`persist`）
 - [x] 检测率报告已写入文档
-- [ ] 提交、打 tag `p4-guardrails`，导出快照 `p4-guardrails`（P4c 结束时另导出 `p4c-routing`）
+- [x] 提交、打 tag `p4-guardrails`，导出快照 `p4-guardrails`（P4c 结束时另导出 `p4c-routing`）
 
 ### P4 偏差记录
 
