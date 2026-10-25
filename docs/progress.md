@@ -27,6 +27,7 @@
 | p0-baseline | 2026-10-22 | 2.48 GB | 见 C:\wsl-snapshots\p0-baseline.sha256.txt |
 | p1-models | 2026-10-22 | 13.81 GB | 346a91c8adf854e5 |
 | p2-core | 2026-10-23 | 16.27 GB | 71c859a963e4e7ed |
+| p3-governance | 2026-10-24 | 16.31 GB | 22178ed033726424 |
 
 ## P0 实测环境基线（2026-10-22）
 
@@ -88,7 +89,7 @@
 - [x] 云端请求同样不存原文（步骤 8）
 - [x] 对账：网关记录的云端 token 与 Anthropic Console 一致（步骤 10）
 - [x] 重启后团队、key、预算、已用额度全部保留（步骤 11）
-- [ ] 提交、打 tag `p3-governance`，导出快照 `p3-governance`（步骤 12）
+- [x] 提交、打 tag `p3-governance`，导出快照 `p3-governance`（步骤 12）
 
 ### P3 偏差记录
 
