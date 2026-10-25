@@ -8,3 +8,5 @@ __pycache__/
 *.pyc
 .secrets/
 litellm/__pycache__/
+# P5：管理界面录屏体积大，不提交（终端录像 docs/demo/*.cast 提交）
+docs/demo/*.mp4

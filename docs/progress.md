@@ -1,8 +1,8 @@
 # 进度与验收状态
 
-- 当前阶段：**P4 安全护栏**（进行中）
-- 阶段文档：P4 安全护栏 — 详细操作步骤（Claude Doc，规划对话维护）
-- 实测结果：`docs/p4-results.md`（脚本自动生成）；之前阶段见 `docs/p1-results.md`、`docs/p2-results.md`、`docs/p3-results.md`
+- 当前阶段：**P5 可观测与演示**（进行中）
+- 阶段文档：P5 可观测与演示 — 详细操作步骤（Claude Doc，规划对话维护）
+- 实测结果：`docs/p5-results.md`（脚本自动生成）；之前阶段见 `docs/p1-results.md` … `docs/p4-results.md`
 
 ## P1 验收
 
@@ -123,3 +123,22 @@
 | P4a 步骤 3 | access 全部 PASS | demo-budget 一项 FAIL（HTTP 422 Budget exceeded） | 该 key 的预算在 P3 budget 检查中已按设计用完，超预算的 key 连 /v1/models 都被拒绝；与 P4 无关 |
 | P4c 步骤 2 | 审计写入直接用 DATABASE_URL | 只保留 libpq 认识的 URL 参数（修正 2） | LiteLLM 启动时给 DATABASE_URL 追加 Prisma 专用的 connection_limit、pool_timeout，psycopg 报 ProgrammingError |
 | P4c 收尾 | 提交、打 tag 后再扫密钥 | 先 secrets 扫描，再提交、打 tag、推送 | secrets 会改写 docs/p3-results.md，放在 tag 之后会使快照检查失败；已撤销那次改动，文档顺序已改 |
+
+## P5 可观测与演示
+
+验收（对应总纲第 9 节；步骤见 P5 详细操作步骤文档）
+
+- [ ] 审计查询脚本：表格、汇总、JSON 可用，输出里查不到原文（`p5check.py audit`）
+- [ ] `demo.sh` 连续跑三次全部 PASS，每次 5 分钟内（`p5check.py repeat`，每次开头自动重置）
+- [ ] 强制离线：云端场景跳过，其余全部通过（`p5check.py offline`）
+- [ ] 真实断网：自动判定离线，本地场景全部通过（`p5check.py offline --real`）
+- [ ] WSL 保活：关掉所有 Ubuntu 窗口 2 分钟后网关仍可调用（`keepalive.ps1`）
+- [ ] 快照瘦身：可删镜像与构建缓存已清理，卷未动（`p5check.py size`、`slim`）
+- [ ] 备份录像：终端 `docs/demo/demo.cast`，管理界面录屏（MP4 不提交）
+- [ ] README 与 ADR 完成（`p5check.py docs`）
+- [ ] 提交、打 tag `p5-release` 与 `v1.0`，导出快照 `p5-release`
+
+### P5 偏差记录
+
+| 步骤 | 原计划 | 实际 | 原因 |
+| --- | --- | --- | --- |

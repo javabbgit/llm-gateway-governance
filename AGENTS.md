@@ -1,7 +1,7 @@
 # AGENTS.md — 执行器规则（Copilot CLI 与 Claude Code 共用）
 
 ## 项目与你的角色
-本仓库是本地 LLM 网关演示：Ollama（P1）→ LiteLLM + Postgres（P2）→ 团队、预算、云端模型（P3，Demo Mortgage Co.）→ PII 驻留路由（P4）→ 演示（P5）。
+本仓库是本地 LLM 网关演示：Ollama（P1）→ LiteLLM + Postgres（P2）→ 团队、预算、云端模型（P3，Demo Mortgage Co.）→ PII 驻留路由（P4）→ 可观测与一键演示（P5）。
 设计和代码已在规划阶段写好。你的工作是：按任务运行现成脚本、读结果、做最小修正、如实记录。不做设计改动，不自己另写测试。
 
 ## 开工前读
@@ -10,7 +10,7 @@
 
 ## 铁律
 1. 不运行 sudo、apt 或任何安装命令；需要时停下，说明原因，等人类处理。
-2. 不读、不写、不打印 `.env`、`.env.*`、`.secrets/` 下的文件和任何密钥；不设置 `ANTHROPIC_API_KEY`、`GITHUB_TOKEN`、`GH_TOKEN`。不运行 `scripts/gen-env.sh`、`scripts/gen-secrets.sh`、`p3check.py admin`（它们要人工输入密钥或密码）。不运行 `p4check.py mode`，不改 `governance/policy.toml`（策略变更由人类决定）。
+2. 不读、不写、不打印 `.env`、`.env.*`、`.secrets/` 下的文件和任何密钥；不设置 `ANTHROPIC_API_KEY`、`GITHUB_TOKEN`、`GH_TOKEN`。不运行 `scripts/gen-env.sh`、`scripts/gen-secrets.sh`、`p3check.py admin`（它们要人工输入密钥或密码）。不运行 `p4check.py mode`，不改 `governance/policy.toml`（策略变更由人类决定）。不运行 `p5check.py slim`、`docker image rm`、`docker builder prune`（删镜像由人类决定）。
 3. 不 `git push`、不打 tag、不 `git reset`；可以 `git add` 和 `git commit`。
 4. 不删除 Docker 卷：禁止 `docker volume rm`、`docker compose down -v`、`docker system prune`。删掉 pg-data 卷等于作废所有 key。
 5. 镜像必须是“版本号@sha256 摘要”；不要改成 latest，不要手工改摘要（用 `scripts/pin-image.sh <服务>`）。
@@ -22,7 +22,10 @@
 - `python3 scripts/p2check.py <子命令>`：env、infra、bypass、key、route、sdk、fallback、plugin、nolog、persist、secrets。结果自动写入 `docs/p2-results.md`，密钥只显示前 6 位。P3 起密钥在 `.secrets/`，脚本自己会读。
 - `python3 scripts/p3check.py <子命令>`：secrets、infra、login、org、access、pricing、budget、ratelimit、cloud、nolog、reconcile、persist。结果写入 `docs/p3-results.md`。`admin` 只由人类运行。
 - `python3 scripts/p4check.py <子命令>`：infra、detect、unit、audit-init、allowlist、route、audit、redact、stream、failclosed、lang、nolog、persist。结果写入 `docs/p4-results.md`。`mode` 只由人类运行。failclosed 会停掉并暂停 Presidio，结束时自动恢复；中途被打断就运行 `docker compose unpause presidio-analyzer && docker compose start presidio-analyzer`。
-- 云端相关子命令（p3check 的 access、cloud、nolog、reconcile --send；p4check 的 redact、stream、nolog）会产生真实费用（每次不到 $0.001）。只按任务要求运行，不要为排错反复重跑；失败就汇报。
+- `python3 scripts/p5check.py <子命令>`：infra、audit、repeat、offline、size、docs。结果写入 `docs/p5-results.md`。`slim` 只由人类运行；`offline --real` 需要人类先断网。
+- 演示：`bash scripts/demo.sh`（每次开头自动重置；`--offline` 强制离线；`--only 7,8,9` 只跑部分场景），`bash scripts/reset.sh` 只重置。演示场景 9 会停掉并重新启动 Presidio；中途被打断就运行 `docker compose unpause presidio-analyzer && docker compose start presidio-analyzer`。
+- 审计查询：`python3 scripts/audit.py`（`--since 1h`、`--action reroute`、`--team marketing`、`--summary`、`--json`）。
+- 云端相关子命令（p3check 的 access、cloud、nolog、reconcile --send；p4check 的 redact、stream、nolog；demo.sh 的场景 8；p5check 的 repeat 与 offline --real）会产生真实费用（每次不到 $0.001）。只按任务要求运行，不要为排错反复重跑；失败就汇报。
 - 以脚本结果为准。FAIL 才需要处理，WARN 只汇报。
 - 日志：`docker compose logs --tail 100 litellm`（或 ollama、postgres、presidio-analyzer）。日志里不应出现请求原文；插件日志行 `policy_check:` 只有类型、数量与规则编号。
 
@@ -33,7 +36,7 @@
 除非失败，不要贴完整日志。
 
 ## 提交
-信息格式 `p4: <动作>`，例如 `p4: run detection corpus`。只提交与本任务相关的文件，`docs/p4-results.md` 随任务一起提交。先编辑、用 `git diff --stat` 确认，再单独提交；编辑和提交不要在同一轮并行发出。
+信息格式 `p5: <动作>`，例如 `p5: run demo three times`。只提交与本任务相关的文件，`docs/p5-results.md` 随任务一起提交。先编辑、用 `git diff --stat` 确认，再单独提交；编辑和提交不要在同一轮并行发出。
 
 ## 权限设置
 Claude Code 读取 `.claude/settings.json`；Copilot CLI 用 `bash scripts/copilot.sh` 启动。两边规则一致：常规 docker/curl/git 提交与检查脚本免确认，上面铁律中的命令禁止，其余逐次确认。
