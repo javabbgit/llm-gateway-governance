@@ -132,3 +132,98 @@ _2026-10-25 11:58，PASS 8 / WARN 0 / FAIL 0_
 
 结论：LiteLLM 只在鉴权时查一次模型白名单（源码 auth_checks.can_key_call_model），钩子里改写目标模型不会再查；所以插件在改道前自己核对 key 与团队白名单，目标不在白名单就按 R10 阻断。白名单配置因此不用为改道放宽：每个能用云端或 DeepSeek 的团队本来就有 chat-default。 阻断请求的 call_id：cef3f3fe-a81f-43a8-8de3-b18b2015c9e1
 <!-- END allowlist -->
+
+<!-- BEGIN route -->
+## P4c 驻留路由：语料逐条核对
+
+_2026-10-25 12:02，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=route |
+| PASS | 插件决定与策略一致，改道的都由本地模型回答 | 65/65 条 |
+| PASS | 与语料标注的预期处置一致 | 65/65 条（不一致见下表，通常是漏检或误报） |
+| PASS | 每个请求都有审计行 | 65/65 |
+
+| 用例 | 目标 | 预期 | 实际 | 规则 | 原因 | 检测到 | 实际模型 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| N01 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| N02 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| N03 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| N04 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| N05 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| N06 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| G01 | chat-deepseek | reroute | reroute | R8 | detected | PERSON:1 | chat-default |
+| G02 | chat-deepseek | reroute | reroute | R8 | detected | EMAIL_ADDRESS:1 | chat-default |
+| G03 | chat-deepseek | reroute | reroute | R8 | detected | PHONE_NUMBER:1 | chat-default |
+| G04 | chat-deepseek | reroute | reroute | R8 | detected | CA_POSTAL_CODE:1,STREET_ADDRESS:1 | chat-default |
+| G05 | chat-deepseek | reroute | reroute | R8 | detected | EMAIL_ADDRESS:1,PERSON:1,PHONE_NUMBER:1 | chat-default |
+| G06 | chat-deepseek | reroute | reroute | R8 | detected | PERSON:1 | chat-default |
+| G07 | chat-deepseek | reroute | reroute | R8 | detected | PERSON:1 | chat-default |
+| H01 | chat-deepseek | reroute | reroute | R9 | detected | CA_SIN:1 | chat-default |
+| H02 | chat-deepseek | reroute | reroute | R9 | detected | CA_SIN:1 | chat-default |
+| H03 | chat-deepseek | reroute | reroute | R9 | detected | CREDIT_CARD:1 | chat-default |
+| H04 | chat-deepseek | reroute | reroute | R9 | detected | CA_BANK_ACCOUNT:1 | chat-default |
+| H05 | chat-deepseek | reroute | reroute | R9 | detected | CA_SIN:1,PERSON:1 | chat-default |
+| L01 | chat-deepseek | reroute | reroute | R9 | language_unsupported | - | chat-default |
+| L02 | chat-deepseek | reroute | reroute | R9 | language_unsupported | PHONE_NUMBER:1 | chat-default |
+| L03 | chat-deepseek | reroute | reroute | R9 | language_unsupported | PERSON:1 | chat-default |
+| L04 | chat-deepseek | reroute | reroute | R9 | language_unsupported | PERSON:2 | chat-default |
+| L05 | chat-deepseek | pass | pass | R7 | none | - | chat-deepseek |
+| L06 | chat-deepseek | reroute | reroute | R9 | language_unsupported | PERSON:1 | chat-default |
+| N01 | chat-default | pass | pass | R1 | none | - | chat-default |
+| N02 | chat-default | pass | pass | R1 | none | - | chat-default |
+| N03 | chat-default | pass | pass | R1 | none | - | chat-default |
+| N04 | chat-default | pass | pass | R1 | none | - | chat-default |
+| N05 | chat-default | pass | pass | R1 | none | - | chat-default |
+| N06 | chat-default | pass | pass | R1 | none | - | chat-default |
+| G01 | chat-default | pass | pass | R2 | detected | PERSON:1 | chat-default |
+| G02 | chat-default | pass | pass | R2 | detected | EMAIL_ADDRESS:1 | chat-default |
+| G03 | chat-default | pass | pass | R2 | detected | PHONE_NUMBER:1 | chat-default |
+| G04 | chat-default | pass | pass | R2 | detected | CA_POSTAL_CODE:1,STREET_ADDRESS:1 | chat-default |
+| G05 | chat-default | pass | pass | R2 | detected | EMAIL_ADDRESS:1,PERSON:1,PHONE_NUMBER:1 | chat-default |
+| G06 | chat-default | pass | pass | R2 | detected | PERSON:1 | chat-default |
+| G07 | chat-default | pass | pass | R2 | detected | PERSON:1 | chat-default |
+| H01 | chat-default | pass | pass | R3 | detected | CA_SIN:1 | chat-default |
+| H02 | chat-default | pass | pass | R3 | detected | CA_SIN:1 | chat-default |
+| H03 | chat-default | pass | pass | R3 | detected | CREDIT_CARD:1 | chat-default |
+| H04 | chat-default | pass | pass | R3 | detected | CA_BANK_ACCOUNT:1 | chat-default |
+| H05 | chat-default | pass | pass | R3 | detected | CA_SIN:1,PERSON:1 | chat-default |
+| L01 | chat-default | pass | pass | R3 | language_unsupported | - | chat-default |
+| L02 | chat-default | pass | pass | R3 | language_unsupported | PHONE_NUMBER:1 | chat-default |
+| L03 | chat-default | pass | pass | R3 | language_unsupported | PERSON:1 | chat-default |
+| L04 | chat-default | pass | pass | R3 | language_unsupported | PERSON:2 | chat-default |
+| L05 | chat-default | pass | pass | R1 | none | - | chat-default |
+| L06 | chat-default | pass | pass | R3 | language_unsupported | PERSON:1 | chat-default |
+| G01 | chat-cloud | reroute | reroute | R5 | detected | PERSON:1 | chat-default |
+| G02 | chat-cloud | reroute | reroute | R5 | detected | EMAIL_ADDRESS:1 | chat-default |
+| G03 | chat-cloud | reroute | reroute | R5 | detected | PHONE_NUMBER:1 | chat-default |
+| G04 | chat-cloud | reroute | reroute | R5 | detected | CA_POSTAL_CODE:1,STREET_ADDRESS:1 | chat-default |
+| G05 | chat-cloud | reroute | reroute | R5 | detected | EMAIL_ADDRESS:1,PERSON:1,PHONE_NUMBER:1 | chat-default |
+| G06 | chat-cloud | reroute | reroute | R5 | detected | PERSON:1 | chat-default |
+| G07 | chat-cloud | reroute | reroute | R5 | detected | PERSON:1 | chat-default |
+| H01 | chat-cloud | reroute | reroute | R6 | detected | CA_SIN:1 | chat-default |
+| H02 | chat-cloud | reroute | reroute | R6 | detected | CA_SIN:1 | chat-default |
+| H03 | chat-cloud | reroute | reroute | R6 | detected | CREDIT_CARD:1 | chat-default |
+| H04 | chat-cloud | reroute | reroute | R6 | detected | CA_BANK_ACCOUNT:1 | chat-default |
+| H05 | chat-cloud | reroute | reroute | R6 | detected | CA_SIN:1,PERSON:1 | chat-default |
+| L01 | chat-cloud | reroute | reroute | R6 | language_unsupported | - | chat-default |
+| L02 | chat-cloud | reroute | reroute | R6 | language_unsupported | PHONE_NUMBER:1 | chat-default |
+| L03 | chat-cloud | reroute | reroute | R6 | language_unsupported | PERSON:1 | chat-default |
+| L04 | chat-cloud | reroute | reroute | R6 | language_unsupported | PERSON:2 | chat-default |
+| L06 | chat-cloud | reroute | reroute | R6 | language_unsupported | PERSON:1 | chat-default |
+<!-- END route -->
+
+<!-- BEGIN audit -->
+## P4c 审计表：能对上费用日志，查不到原文
+
+_2026-10-25 12:03，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 审计行 ↔ 费用日志一一对应（litellm_call_id） | 65/65 |
+| PASS | 审计的实际模型 = 费用日志的 model_group | 65/65 |
+| PASS | pii_counts 只有策略里的实体类型与整数 | 0 行异常 |
+| PASS | governance schema 导出里搜不到语料中的任何 PII | 搜索 19 个假 PII 值，命中 0 个（导出 15 KB） |
+| INFO | 审计表按处置汇总 | block/1；pass/34；reroute/35 |
+<!-- END audit -->
