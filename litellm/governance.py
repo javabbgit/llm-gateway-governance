@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import time
+import urllib.parse
 from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))   # 同目录的 pii_* 模块
@@ -108,6 +109,19 @@ def _texts(data: dict) -> tuple[list, list[str]]:
     return segs, texts
 
 
+# libpq 认识的 URL 参数。LiteLLM 启动时会给 DATABASE_URL 追加 Prisma 专用的 connection_limit、pool_timeout，
+# psycopg（libpq）不认，直接报 ProgrammingError（P4c 真机发现，修正 2），所以只保留这些参数。
+LIBPQ_PARAMS = {"sslmode", "sslrootcert", "sslcert", "sslkey", "connect_timeout", "application_name",
+                "options", "target_session_attrs", "gssencmode", "channel_binding"}
+
+
+def _audit_dsn() -> str:
+    url = os.environ.get("GOVERNANCE_DATABASE_URL") or os.environ["DATABASE_URL"]
+    parts = urllib.parse.urlsplit(url)
+    keep = [(k, v) for k, v in urllib.parse.parse_qsl(parts.query) if k in LIBPQ_PARAMS]
+    return urllib.parse.urlunsplit(parts._replace(query=urllib.parse.urlencode(keep)))
+
+
 class _Audit:
     """审计表写入。直接用 psycopg（LiteLLM 镜像经 litellm-proxy-extras 自带）连 DATABASE_URL。
     写失败只记一行错误、不阻断请求：数据库不可用时 LiteLLM 的 key 鉴权会先失败。"""
@@ -131,14 +145,15 @@ class _Audit:
                 try:
                     if self._conn is None or self._conn.closed:
                         import psycopg
-                        self._conn = await psycopg.AsyncConnection.connect(os.environ.get("GOVERNANCE_DATABASE_URL") or os.environ["DATABASE_URL"], autocommit=True,
-                                                                           connect_timeout=3)
+                        self._conn = await psycopg.AsyncConnection.connect(_audit_dsn(), autocommit=True, connect_timeout=3)
                     await self._conn.execute(sql, params)
                     return
                 except Exception as e:  # noqa: BLE001
                     self._conn = None
                     if attempt == 2:
-                        _log(f"audit_error: {type(e).__name__} call_id={params[0] if sql is self.INSERT else params[-1]}")
+                        # 只记异常类型与 SQLSTATE，不记异常消息（约束错误的消息会带出整行数据）
+                        _log(f"audit_error: {type(e).__name__} sqlstate={getattr(e, 'sqlstate', None)} "
+                             f"call_id={params[0] if sql is self.INSERT else params[-1]}")
 
     async def insert(self, **r) -> None:
         await self._exec(self.INSERT, (

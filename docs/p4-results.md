@@ -85,3 +85,50 @@ _2026-10-25 11:40，PASS 2 / WARN 0 / FAIL 0_
 | PASS | 单元测试 | 25 个，全部通过 |
 | PASS | 处置矩阵九格逐格测试 | test_every_cell 覆盖 R1–R9；另有 R10 阻断、故障与非英文兜底 |
 <!-- END unit -->
+
+<!-- BEGIN audit-init -->
+## 审计表
+
+_2026-10-25 11:42，PASS 3 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 执行 governance/audit.sql | CREATE SCHEMA CREATE TABLE CREATE INDEX COMMENT |
+| PASS | governance.pii_audit 可查询 | 0 行 |
+| PASS | 约束拒绝把文本写进 pii_counts | BEGIN ERROR: new row for relation "pii_audit" violates check constraint "pii_counts_types_… |
+<!-- END audit-init -->
+
+<!-- BEGIN mode -->
+## 策略模式切换
+
+_2026-10-25 11:57，PASS 5 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | policy.toml | enforcement = "route"（未变） |
+| PASS | docker compose restart litellm | Container llm-gateway-governance-litellm-1 Restarting Container llm-gateway-gove… |
+| PASS | 网关恢复 | 12 秒 |
+| PASS | 插件以新模式运行 | 5:57:43.683+00:00 policy_check: pass (p4-route) call_id=80bc3be2-5264-4565-ad14-58386359480e model=c… |
+| PASS | 审计写入可用（刚才的请求已写进审计表） | outcome=success |
+
+记得把 policy.toml 的这次改动和本小节一起提交：模式切换本身是需要审计的策略变更。
+<!-- END mode -->
+
+<!-- BEGIN allowlist -->
+## P4c 最先验证：白名单与改道
+
+_2026-10-25 11:58，PASS 8 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=route |
+| PASS | 静态层：审批团队调用 chat-deepseek 被 LiteLLM 拒绝 | HTTP 403：The requested model 'chat-deepseek' is not available for this API key, or the model name i… |
+| PASS | 市场团队无 PII → chat-deepseek 放行（模拟部署回答） | 200 {'action': 'pass', 'rule': 'R7', 'level': 'none', 'reason': 'none', 'routed-model': 'chat-deepseek', 'pii': '-'} |
+| PASS | 市场团队含 SIN → 改道到 chat-default（R9） | 200 rule=R9 pii=CA_SIN:1 |
+| PASS | 费用日志里实际模型是本地 | model_group=chat-default |
+| PASS | 只有云端模型的 key 含 SIN → 无处改道，阻断（R10） | HTTP 403：policy_blocked: rule R10 — 改道目标 chat-default 不在调用方的模型白名单里. Request contains data that may not be sen… |
+| PASS | 同一个 key 无 PII 照常放行 | 200 |
+| PASS | 阻断写进审计表 | block/R10/blocked |
+
+结论：LiteLLM 只在鉴权时查一次模型白名单（源码 auth_checks.can_key_call_model），钩子里改写目标模型不会再查；所以插件在改道前自己核对 key 与团队白名单，目标不在白名单就按 R10 阻断。白名单配置因此不用为改道放宽：每个能用云端或 DeepSeek 的团队本来就有 chat-default。 阻断请求的 call_id：cef3f3fe-a81f-43a8-8de3-b18b2015c9e1
+<!-- END allowlist -->

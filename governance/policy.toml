@@ -8,7 +8,7 @@ version = "2026-10-p4"
 #           route = 检测、改道、阻断、审计，需要脱敏的格子先按改道处理（P4c 用）；
 #           full = 全部生效，含脱敏与还原（P4d 起，最终状态）。
 # 用 python3 scripts/p4check.py mode <模式> 切换，它会改这一行并重启 LiteLLM。
-enforcement = "off"
+enforcement = "route"
 
 # 改道目标：只能是本地模型。它自己的降级链（chat-default → chat-fallback）照常生效。
 reroute_target = "chat-default"

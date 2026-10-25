@@ -312,6 +312,12 @@ def cmd_mode(a) -> int:
     r = chat("chat-default", key(UW), [{"role": "user", "content": "Reply with one word: pong"}])
     line = last_policy_line()
     rep.add("PASS" if r.status == 200 and f"(p4-{a.mode})" in line else "FAIL", "插件以新模式运行", snip(line[25:], 100))
+    if a.mode != "off":
+        # 修正 2：P4c 首次运行时审计写入全部失败，到 allowlist 才发现；切换模式时就核对一行审计
+        row = audit_rows([call_id(r)], wait=15).get(call_id(r))
+        errs = [x for x in base.logs("3m", "litellm").splitlines() if "audit_error" in x]
+        rep.add("PASS" if row else "FAIL", "审计写入可用（刚才的请求已写进审计表）",
+                f"outcome={row['outcome']}" if row else (snip(errs[-1][25:], 100) if errs else "没有审计行，也没有 audit_error 日志"))
     return rep.finish("记得把 policy.toml 的这次改动和本小节一起提交：模式切换本身是需要审计的策略变更。")
 
 
