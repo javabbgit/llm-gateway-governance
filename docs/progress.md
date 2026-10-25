@@ -108,10 +108,10 @@
 - [x] P4c：语料逐条处置与策略一致，改道的都由本地模型回答（`route`）
 - [x] P4c：审计记录都能与 LiteLLM 请求日志对上，且查不到任何原文（`audit`）
 - [x] P4d：一般敏感发往云端先脱敏，非流式与流式回答都已还原，流式协议不变（`redact`、`stream`）
-- [ ] P4e：fail-closed 演示通过：停掉 Presidio 后发往 DeepSeek 的请求被改道，审计原因为“检测器不可用”（`failclosed`）
-- [ ] P4e：非英文按无法检测处理（`lang`）
-- [ ] P4e：云端与改道请求都不存原文（`nolog`）；重启后保持（`persist`）
-- [ ] 检测率报告已写入文档
+- [x] P4e：fail-closed 演示通过：停掉 Presidio 后发往 DeepSeek 的请求被改道，审计原因为“检测器不可用”（`failclosed`）
+- [x] P4e：非英文按无法检测处理（`lang`）
+- [x] P4e：云端与改道请求都不存原文（`nolog`）；重启后保持（`persist`）
+- [x] 检测率报告已写入文档
 - [ ] 提交、打 tag `p4-guardrails`，导出快照 `p4-guardrails`（P4c 结束时另导出 `p4c-routing`）
 
 ### P4 偏差记录
@@ -121,3 +121,4 @@
 | P4a 步骤 1 | 锁定 PyPI 最新版 2.2.364 | 锁定 MCR 最新版 2.2.362；SIN 改用自写识别器 | MCR 镜像比 PyPI 慢，2.2.364 无镜像；2.2.362 没有自带 CaSinRecognizer |
 | P4a 步骤 3 | access 全部 PASS | demo-budget 一项 FAIL（HTTP 422 Budget exceeded） | 该 key 的预算在 P3 budget 检查中已按设计用完，超预算的 key 连 /v1/models 都被拒绝；与 P4 无关 |
 | P4c 步骤 2 | 审计写入直接用 DATABASE_URL | 只保留 libpq 认识的 URL 参数（修正 2） | LiteLLM 启动时给 DATABASE_URL 追加 Prisma 专用的 connection_limit、pool_timeout，psycopg 报 ProgrammingError |
+| P4c 收尾 | 提交、打 tag 后再扫密钥 | 先 secrets 扫描，再提交、打 tag、推送 | secrets 会改写 docs/p3-results.md，放在 tag 之后会使快照检查失败；已撤销那次改动，文档顺序已改 |

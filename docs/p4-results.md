@@ -259,3 +259,68 @@ _2026-10-25 12:48，PASS 5 / WARN 0 / FAIL 0_
 
 需要还原的流式请求要等云端生成完才开始输出（决策 23 的代价），协议本身不变。
 <!-- END stream -->
+
+<!-- BEGIN failclosed -->
+## P4e fail-closed
+
+_2026-10-25 12:57，PASS 9 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=full |
+| PASS | Presidio 停止：无 PII 发往 chat-deepseek 也被改道 | 200 rule=R9 reason=detector_unavailable 0.3s |
+| PASS | Presidio 停止：本地请求照常放行 | 200 rule=R3 reason=detector_unavailable |
+| PASS | Presidio 停止：审计原因为“检测器不可用” | reason=detector_unavailable detector=unavailable |
+| PASS | Presidio 重新启动到健康 | 4 秒 |
+| PASS | Presidio 无响应（暂停）：无 PII 发往 chat-deepseek 也被改道 | 200 rule=R9 reason=detector_unavailable 3.2s |
+| PASS | Presidio 无响应（暂停）：本地请求照常放行 | 200 rule=R3 reason=detector_unavailable |
+| PASS | Presidio 无响应（暂停）：审计原因为“检测器不可用” | reason=detector_unavailable detector=timeout |
+| PASS | 恢复后无 PII 请求重新放行 | 200 R7 |
+
+暂停时请求要等满超时（policy.toml 的 timeout_seconds）才改道；停止时连接被拒，立即改道。
+<!-- END failclosed -->
+
+<!-- BEGIN lang -->
+## P4e 非英文按无法检测处理
+
+_2026-10-25 12:57，PASS 7 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=full |
+| PASS | N02（en）→ chat-deepseek | pass R7 none |
+| PASS | L01（zh）→ chat-deepseek | reroute R9 language_unsupported |
+| PASS | L02（zh）→ chat-deepseek | reroute R9 language_unsupported |
+| PASS | L03（fr）→ chat-deepseek | reroute R9 language_unsupported |
+| PASS | L04（es）→ chat-deepseek | reroute R9 language_unsupported |
+| PASS | L06（ru）→ chat-deepseek | reroute R9 language_unsupported |
+<!-- END lang -->
+
+<!-- BEGIN nolog -->
+## P4e 不存原文：标记串 + 假 PII【计费】
+
+_2026-10-25 13:00，PASS 5 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 策略模式 | enforcement=full |
+| PASS | 脱敏路径（云端） | 200 EMAIL_ADDRESS:1,PERSON:1 |
+| PASS | 改道路径（本地） | 200 R6 |
+| PASS | 整库导出（含 governance 审计表）搜不到 | 0 个命中，导出 1941 KB |
+| PASS | 四个容器（含 Presidio）的日志搜不到 | 0 个命中，日志 86 KB |
+
+搜索 4 个值：标记串、假名字、假邮箱、假 SIN。
+<!-- END nolog -->
+
+<!-- BEGIN persist -->
+## P4e 重启后保持
+
+_2026-10-25 13:08，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 审计行数没有减少 | 87 → 87 |
+| PASS | 网关恢复 |  |
+| PASS | Presidio 自动恢复健康 | 0 秒 |
+| PASS | 重启后驻留路由仍生效 | 200 R9 |
+<!-- END persist -->
