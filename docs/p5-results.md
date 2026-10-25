@@ -148,3 +148,19 @@ _2026-10-25 17:02，PASS 1 / WARN 0 / FAIL 0_
 
 keepalive.ps1 start 后关闭全部 Ubuntu 窗口 2 分钟：status 显示 Ubuntu-24.04 Running，Windows 侧 curl 网关返回 I am alive。
 <!-- END keepalive -->
+
+<!-- BEGIN slim -->
+## 快照瘦身【人工】
+
+_2026-10-25 17:08，PASS 3 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 删除 postgres:17 | 646MB |
+| PASS | 清理构建缓存 | Total: 0B |
+| INFO | 前 → 后 | Images 4 4 12.44GB 0B (0%)  →  Images 4 4 12.44GB 0B (0%) |
+| INFO | 前 → 后 | Build Cache 0 0 0B 0B  →  Build Cache 0 0 0B 0B |
+| PASS | 在用镜像都还在 |  |
+
+没有删除任何卷。下一步照常 docker compose ps 确认四个服务 healthy，再导出快照。
+<!-- END slim -->

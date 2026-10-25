@@ -133,7 +133,7 @@
 - [ ] 强制离线：云端场景跳过，其余全部通过（`p5check.py offline`）
 - [ ] 真实断网：自动判定离线，本地场景全部通过（`p5check.py offline --real`）
 - [ ] WSL 保活：关掉所有 Ubuntu 窗口 2 分钟后网关仍可调用（`keepalive.ps1`）
-- [ ] 快照瘦身：可删镜像与构建缓存已清理，卷未动（`p5check.py size`、`slim`）
+- [ ] 快照瘦身已核查：可回收 0 B，只去掉重复标签 postgres:17，卷未动（`p5check.py size`、`slim`）
 - [ ] 备份录像：终端 `docs/demo/demo.cast`，管理界面录屏（MP4 不提交）
 - [ ] README 与 ADR 完成（`p5check.py docs`）
 - [ ] 提交、打 tag `p5-release` 与 `v1.0`，导出快照 `p5-release`
