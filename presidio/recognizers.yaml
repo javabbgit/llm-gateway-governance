@@ -1,9 +1,9 @@
 # Presidio analyzer 识别器清单（P4）。挂进官方镜像，由 RECOGNIZER_REGISTRY_CONF_FILE 指向本文件，不自建镜像。
 # 本文件替换镜像自带的 default_recognizers.yaml，所以只列出需要的识别器：
 #   - 预置：信用卡（自带 Luhn 校验）、邮箱、电话、IBAN；不加美国 SSN（9 位 SIN 会被它误标成 US_SSN）；人名由 spaCy（en_core_web_lg）的 NER 识别，引擎自动加载
-#   - 加拿大 SIN：Presidio 自带 CaSinRecognizer（含 Luhn 校验，默认关闭），这里启用；插件里再做一次 Luhn 作为纵深防御
-#   - 自写（加拿大）：银行账号、邮编，以及英文街道地址
-# 分数：带分隔符的格式给 0.6；纯数字只给 0.2，必须靠上下文词加分（+0.35）才能超过策略里的阈值。
+#   - 自写（加拿大）：SIN、银行账号、邮编，以及英文街道地址
+# 模式识别器在 YAML 里不能运行代码，SIN 的 Luhn 校验在网关插件 litellm/pii_detect.py 里做。
+# 分数：带分隔符的格式给 0.5–0.6；纯数字只给 0.2，必须靠上下文词加分（+0.35）才能超过策略里的阈值。
 # 实体名与 governance/policy.toml 的分级表一一对应；这里加了实体而策略里没写，插件不会请求它。
 supported_languages:
   - en
@@ -25,18 +25,15 @@ recognizers:
   - name: IbanRecognizer
     type: predefined
 
-  - name: CaSinRecognizer             # Presidio 2.2.364 自带，含 Luhn 校验，默认关闭；这里启用
-    supported_languages:
-    - en
-    type: predefined
-    country_code: ca
-
-  - name: CaSinPlainRecognizer        # 补充：自带识别器的纯 9 位模式只有 0.05 分，且上下文只认 sin 一个单词
+  - name: CanadaSinRecognizer         # 自写；MCR 上最新的 2.2.362 还没有自带的 CaSinRecognizer（2.2.364 才有）
     supported_language: en
     supported_entity: CA_SIN
     type: custom
     patterns:
-      - name: sin_plain                     # 130692544；Luhn 校验在插件里做
+      - name: sin_grouped                   # 193 456 787 / 193-456-787；首位不会是 0 或 8
+        regex: "\\b[1-79]\\d{2}([- ])\\d{3}\\1\\d{3}\\b"
+        score: 0.5
+      - name: sin_plain                     # 130692544，只有上下文词在场才超过阈值
         regex: "\\b[1-79]\\d{8}\\b"
         score: 0.2
     context: [sin, social, insurance, nas]

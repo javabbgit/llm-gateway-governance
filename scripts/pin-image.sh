@@ -3,7 +3,7 @@
 # 用法：bash scripts/pin-image.sh ollama   [版本]   # 默认取 GitHub 上 ollama/ollama 的最新正式版
 #       bash scripts/pin-image.sh litellm  [标签]   # 默认取 BerriAI/litellm 标为 Latest 的正式版，如 v1.106.2
 #       bash scripts/pin-image.sh postgres [大版本] # 默认 17，解析成具体小版本，例如 17.6
-#       bash scripts/pin-image.sh presidio [版本]   # 默认取 PyPI 上 presidio-analyzer 的最新版，如 2.2.364
+#       bash scripts/pin-image.sh presidio [版本]   # 默认取 MCR 上最新的正式版本号，如 2.2.362
 #       bash scripts/pin-image.sh 0.40.8            # 兼容 P1 写法：等同 ollama 0.40.8
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -44,10 +44,12 @@ case "$svc" in
     ;;
   presidio)
     repo="mcr.microsoft.com/presidio-analyzer"
-    tag="$arg"
-    [[ -z "$tag" ]] && tag="$(curl -fsS https://pypi.org/pypi/presidio-analyzer/json 2>/dev/null | jq -r .info.version || true)"
-    [[ "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || fail "取不到 Presidio 的正式版本号：'${tag}'。到 pypi.org/project/presidio-analyzer 查，再运行 bash scripts/pin-image.sh presidio <版本>"
-    source_note="Microsoft Presidio 官方镜像（MCR），版本与 PyPI 的 presidio-analyzer ${tag} 一致"
+    # 版本号以 MCR 上实际存在的标签为准：镜像发布比 PyPI 包慢，PyPI 的最新版可能没有对应镜像（P4 实测 2.2.364 不存在）
+    mcr_tags="$(curl -fsS https://mcr.microsoft.com/v2/presidio-analyzer/tags/list 2>/dev/null | jq -r '.tags[]' | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V || true)"
+    [[ -n "$mcr_tags" ]] || fail "取不到 MCR 的标签列表：curl -s https://mcr.microsoft.com/v2/presidio-analyzer/tags/list"
+    tag="${arg:-$(tail -1 <<<"$mcr_tags")}"
+    grep -qx "$tag" <<<"$mcr_tags" || fail "MCR 没有 presidio-analyzer:${tag}。现有最新的几个：$(tail -5 <<<"$mcr_tags" | tr '\n' ' ')"
+    source_note="Microsoft Presidio 官方镜像（MCR），取 MCR 标签列表里最新的正式版本号 ${tag}"
     ;;
   *) fail "未知服务：${svc}（可选 ollama、litellm、postgres、presidio）";;
 esac
