@@ -217,14 +217,14 @@ _2026-10-24 15:25，PASS 4 / WARN 0 / FAIL 0_
 <!-- BEGIN reconcile -->
 ## 云端对账（网关 vs Anthropic Console）
 
-_2026-10-24 15:41，PASS 2 / WARN 0 / FAIL 0_
+_2026-10-24 21:02，PASS 3 / WARN 0 / FAIL 0_
 
 | 结果 | 检查项 | 说明 |
 | --- | --- | --- |
-| PASS | 发送对账批次 10 次 | 成功 10 |
 | INFO | 网关记录（全部云端成功调用） | 13 次，输入 313 tok，输出 957 tok，UTC 2026-10-24 16:34 ~ 2026-10-24 19:40 |
 | PASS | 网关费用 = token × 官方单价 | 记 $0.000510，按单价算 $0.000510 |
-| INFO | 下一步 | Console → Usage：筛选网关专用 key 与 claude-haiku-5-5，日期覆盖上面的 UTC 区间，记下输入/输出 token，再运行 reconcile --console-in N --console-out M |
+| PASS | 输入 token：网关 = Console | 网关 313，Console 313，差 0 |
+| PASS | 输出 token：网关 = Console | 网关 957，Console 957，差 0 |
 
 Haiku 5.5 的思考 token 计入输出；网关按响应里的 usage 计，与 Console 口径一致。
 <!-- END reconcile -->
