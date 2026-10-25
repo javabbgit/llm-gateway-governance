@@ -86,3 +86,35 @@ _2026-10-25 16:32，PASS 3 / WARN 0 / FAIL 0_
 | 2 | 0 | 9 | 0 | 0 | PASS | 24 | 1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS |
 | 3 | 0 | 9 | 0 | 0 | PASS | 20 | 1:PASS 2:PASS 3:PASS 4:PASS 5:PASS 6:PASS 7:PASS 8:PASS 9:PASS |
 <!-- END repeat -->
+
+<!-- BEGIN offline -->
+## 离线模式（--offline 强制）
+
+_2026-10-25 16:41，PASS 4 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 云端场景 8 被跳过 | SKIP：offline mode forced (--offline) |
+| PASS | 本地场景 1–7、9 全部通过 | 全部 PASS |
+| PASS | 审计轨迹 | PASS |
+| PASS | 退出码 0，5 分钟内 | 退出码 0，21 秒 |
+
+强制离线只证明跳过逻辑；断网实测用 --real。
+<!-- END offline -->
+
+<!-- BEGIN offline-real -->
+## 离线模式（真实断网）
+
+_2026-10-25 16:47，PASS 6 / WARN 0 / FAIL 0_
+
+| 结果 | 检查项 | 说明 |
+| --- | --- | --- |
+| PASS | 外网确实不可达 | 已断网 |
+| PASS | 云端场景 8 被跳过 | SKIP：cannot reach api.anthropic.com:443 (offline) |
+| PASS | 本地场景 1–7、9 全部通过 | 全部 PASS |
+| PASS | 审计轨迹 | PASS |
+| PASS | 退出码 0，5 分钟内 | 退出码 0，29 秒 |
+| PASS | 离线是自动判定的（没有加 --offline） | cannot reach api.anthropic.com:443 (offline) |
+
+真实断网验证完成后记得恢复网络。
+<!-- END offline-real -->
