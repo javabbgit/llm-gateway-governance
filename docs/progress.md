@@ -135,7 +135,7 @@
 - [x] 真实断网：自动判定离线，本地场景全部通过（`p5check.py offline --real`）
 - [x] WSL 保活：关掉所有 Ubuntu 窗口 2 分钟后网关仍可调用（`keepalive.ps1`）
 - [x] 快照瘦身已核查：可回收 0 B，只去掉重复标签 postgres:17，卷未动（`p5check.py size`、`slim`）
-- [x] 备份录像：终端 `docs/demo/demo.cast`，管理界面录屏（MP4 不提交）
+- [x] 备份录像：终端 asciinema 与管理界面录屏，原始文件留在仓库外（终端 .cast 曾提交，发布后已从 git 历史清除）
 - [x] README 与 ADR 完成（`p5check.py docs`）
 - [x] 提交、打 tag `p5-release` 与 `v1.0`，导出快照 `p5-release`
 
@@ -145,3 +145,4 @@
 | --- | --- | --- | --- |
 | 步骤 3 | 报错原样显示 | 报错文本去掉 key 哈希、长小数取 6 位（修正 1） | 429 报错带 LiteLLM key 哈希，会进录像 |
 | 步骤 4 | Presidio 健康检查每 30 秒一次 | 加 start_interval: 2s；演示重启 Presidio 后等 Docker 状态 healthy（修正 2） | 连续演示第 3 次预检读到 starting |
+| 发布后 | 终端录像 docs/demo/demo.cast 提交仓库 | 用 git filter-repo 从全部历史中清除，tag p5-release、v1.0 随之重写；原始录像留在仓库外 | 未加水印的原始录像可被直接下载、配音搬运 |

@@ -8,5 +8,6 @@ __pycache__/
 *.pyc
 .secrets/
 litellm/__pycache__/
-# P5：管理界面录屏体积大，不提交（终端录像 docs/demo/*.cast 提交）
-docs/demo/*.mp4
+# P5：原始录像（终端 .cast、管理界面 MP4）一律不进仓库；对外只发布带仓库水印的成片
+docs/demo/
+*.cast

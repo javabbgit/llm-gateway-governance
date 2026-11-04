@@ -49,8 +49,8 @@ The policy audit table is not in the UI; show it with `python3 scripts/audit.py 
 | Scene 5 or 6 fails with "window still open" or "budget already used up" | `bash scripts/reset.sh`, rerun (only happens with `--no-reset`) |
 | A run was killed during scene 9 | `docker compose unpause presidio-analyzer && docker compose start presidio-analyzer` |
 | Scene 8 skipped although you are online | `.secrets/anthropic_api_key` is empty, or the venue blocks port 443 to api.anthropic.com |
-| Everything is stuck | Play the recording: `asciinema play docs/demo/demo.cast` |
+| Everything is stuck | Play the narrated demo video (kept outside the repo, with the repo watermark) |
 
 ## Recording
 
-Terminal: `asciinema rec docs/demo/demo.cast --cols 120 --rows 40 -c "bash scripts/demo.sh"` (the cast file is text and is committed). Admin UI: Windows Snipping Tool, Record, saved as MP4 outside the repo. Neither shows a key: the demo never prints one.
+Terminal: `asciinema rec ~/recordings/demo.cast --cols 120 --rows 40 -c "bash scripts/demo.sh"`. Admin UI: Windows Snipping Tool, Record, saved as MP4. Raw recordings stay outside the repo; only renders carrying the repo watermark are published. Neither shows a key: the demo never prints one.

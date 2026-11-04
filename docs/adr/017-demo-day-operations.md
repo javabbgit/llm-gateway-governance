@@ -10,7 +10,7 @@ WSL stops a distro seconds after its last window closes, taking the gateway with
 
 ## Decision
 
-`scripts/keepalive.ps1` starts a hidden `wsl --exec sleep infinity` and records its PID; it is started for demos and stopped afterwards. Snapshot slimming removes only images not referenced by `docker-compose.yml`, dangling images and build cache, never volumes, and is run by a human (`p5check.py slim`). Recordings: the terminal with asciinema (the `.cast` text file is committed), the admin UI with the Windows Snipping Tool (MP4, not committed).
+`scripts/keepalive.ps1` starts a hidden `wsl --exec sleep infinity` and records its PID; it is started for demos and stopped afterwards. Snapshot slimming removes only images not referenced by `docker-compose.yml`, dangling images and build cache, never volumes, and is run by a human (`p5check.py slim`). Recordings: the terminal with asciinema, the admin UI with the Windows Snipping Tool. Raw recordings stay outside the repo; only renders with the repo URL watermarked into the frame are published. The terminal `.cast` file was committed at first and later purged from history, so an unwatermarked copy cannot be lifted from the repo.
 
 ## Alternatives rejected
 
