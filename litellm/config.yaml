@@ -49,6 +49,18 @@ model_list:
     model_info:
       jurisdiction: CN                     # P4 策略：CN 属于未批准类别
 
+  - model_name: rag-embed
+    litellm_params:
+      model: openai/nomic-embed-text      # 与 chat-default 同一条 Ollama /v1 路径
+      api_base: http://ollama:11434/v1    # 容器网络内的服务名
+      api_key: ollama                     # Ollama 不校验，占位
+      timeout: 120
+      input_cost_per_token: 0.00000002    # $0.02 / 1M，内部结算价
+      output_cost_per_token: 0
+    model_info:
+      jurisdiction: local                 # P4 驻留路由用的供应商属性
+      mode: embedding
+
 router_settings:
   # 只在本地模型之间降级；绝不从本地降级到云端，也不从云端降级到本地（改道由 P4 插件按 governance/policy.toml 决定）
   fallbacks:
