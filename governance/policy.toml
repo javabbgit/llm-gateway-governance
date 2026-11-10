@@ -91,6 +91,9 @@ score_threshold = 0.4        # 沙盒实测：0.5 会漏掉无上下文的电话
 language = "en"              # 只做英文检测（决策 25、26）
 # 这些词不当作 PII（产品名、公司名常被 spaCy 误认成人名）。完全匹配。
 allow_list = ["Claude", "Haiku", "Sonnet", "Opus", "Anthropic", "DeepSeek", "Presidio", "LiteLLM", "Ollama", "Qwen", "Llama", "Demo Mortgage Co."]
+# 虚构的 Demo Mortgage Co. 内部编号（文档编号、产品代码）：spaCy NER 会误判为 PERSON。含有这些模式的片段不当作 PII。
+# 正则匹配（Presidio allow_list_match="regex"）；不影响上面 allow_list 的完全匹配语义。
+allow_regex = ['\b(POL|PRC|PRD|RATE|FAQ)-\d{3}(-V1)?\b', '\b(FX5-C|FX3-C|VR5-C|FX1-O|HEL-1|RNT-4|SEA-5|EXC-100)\b']
 
 [language]
 # 非英文判定（决策 26）：任一条消息含非拉丁字母，或法语、西语常用词至少 min_hits 个且多于英文常用词。

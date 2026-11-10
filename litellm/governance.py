@@ -206,7 +206,8 @@ class GovernancePlugin(CustomLogger):
         lang = pii_detect.language_status(texts, POLICY.min_hits)
         det = await pii_detect.analyze(
             texts, entities=POLICY.entities, score_threshold=POLICY.score_threshold,
-            allow_list=list(POLICY.allow_list), language=POLICY.language,
+            allow_list=list(POLICY.allow_list), allow_regex=list(POLICY.allow_regex),
+            language=POLICY.language,
             timeout=POLICY.timeout_seconds, client=self._client())
         counts = det.counts()
         d = pii_policy.decide(

@@ -140,7 +140,7 @@ def _dedupe(findings: list[Finding]) -> list[Finding]:
 
 
 async def analyze(texts: list[str], *, entities: list[str], score_threshold: float, allow_list: list[str],
-                  language: str = "en", timeout: float = 3.0, url: str | None = None, client=None) -> Detection:
+                  allow_regex: list[str] = (), language: str = "en", timeout: float = 3.0, url: str | None = None, client=None) -> Detection:
     """一次请求批量检测所有文本段。任何异常都返回非 ok 状态，由策略按 high 处理（fail-closed）。"""
     t0 = time.perf_counter()
     if not texts:
@@ -148,6 +148,10 @@ async def analyze(texts: list[str], *, entities: list[str], score_threshold: flo
     url = (url or os.environ.get("PRESIDIO_URL") or DEFAULT_URL).rstrip("/") + "/analyze"
     body = {"text": texts, "language": language, "entities": entities,
             "score_threshold": score_threshold, "allow_list": list(allow_list)}
+    if allow_regex:
+        # 切到正则模式：原有精确词条加锚点并关闭大小写忽略，保持完全匹配、区分大小写
+        body["allow_list"] = ["^(?-i:" + re.escape(w) + ")$" for w in allow_list] + list(allow_regex)
+        body["allow_list_match"] = "regex"
     try:
         import httpx  # LiteLLM 镜像自带
 
@@ -197,7 +201,8 @@ async def _run_corpus(lines: list[str]) -> list[dict]:
         segs = extract_segments(messages)
         texts = [s.text for s in segs]
         det = await analyze(texts, entities=policy.entities, score_threshold=policy.score_threshold,
-                            allow_list=list(policy.allow_list), language=policy.language,
+                            allow_list=list(policy.allow_list), allow_regex=list(policy.allow_regex),
+                            language=policy.language,
                             timeout=float(os.environ.get("DETECT_TIMEOUT", policy.timeout_seconds)))
         # 只输出类型、数量、状态与耗时，不输出命中的文本
         out.append({"id": case["id"], "status": det.status, "ms": det.ms, "counts": det.counts(),

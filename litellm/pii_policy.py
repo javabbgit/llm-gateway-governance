@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,6 +48,7 @@ class Policy:
     score_threshold: float
     language: str
     allow_list: tuple
+    allow_regex: tuple
     min_hits: int
 
     @property
@@ -121,6 +123,14 @@ def parse_policy(raw: dict) -> Policy:
         raise PolicyError(f"block_rule {block_rule} 与矩阵规则编号重复")
 
     det = need(raw, "detector", "")
+    allow_regex = tuple(det.get("allow_regex", ()))
+    for pat in allow_regex:
+        try:
+            if not isinstance(pat, str):
+                raise TypeError("必须是字符串")
+            re.compile(pat)
+        except (re.error, TypeError) as e:
+            raise PolicyError(f"detector.allow_regex 含无效正则 {pat!r}：{e}") from e
     lang = raw.get("language", {})
     return Policy(
         version=str(need(raw, "version", "")),
@@ -135,6 +145,7 @@ def parse_policy(raw: dict) -> Policy:
         score_threshold=float(det.get("score_threshold", 0.5)),
         language=str(det.get("language", "en")),
         allow_list=tuple(det.get("allow_list", ())),
+        allow_regex=allow_regex,
         min_hits=int(lang.get("min_hits", 3)),
     )
 

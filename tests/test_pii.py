@@ -2,6 +2,7 @@
 
 只用标准库，不碰网络与容器。运行：python3 scripts/p4check.py unit（或 python3 -m unittest discover -s tests -v）
 """
+import asyncio
 import copy
 import json
 import sys
@@ -220,6 +221,53 @@ class RedactTest(unittest.TestCase):
         texts = [c.choices[0].delta.content for c in out]
         self.assertEqual(texts[0], "Dear Emily Tremblay, your rate is fixed.")
         self.assertEqual(texts[1:], ["", "", None])
+
+
+class AllowRegexTest(unittest.TestCase):
+    """allow_regex：空时请求体不变；非空时切到正则模式，精确词条加锚点。无网络，假客户端抓请求体。"""
+
+    class FakeClient:
+        def __init__(self):
+            self.body = None
+
+        async def post(self, url, json=None):
+            self.body = json
+            return NS(status_code=200, json=lambda: [[] for _ in json["text"]])
+
+    def run_analyze(self, **kw):
+        c = self.FakeClient()
+        sys.modules.setdefault("httpx", NS())  # analyze() 总会 import httpx；宿主机可能没装，传了 client 时只需要它存在
+        det = asyncio.run(pii_detect.analyze(["hello"], entities=["PERSON"], score_threshold=0.4,
+                                             allow_list=["Claude", "Demo Mortgage Co."], client=c, **kw))
+        self.assertTrue(det.ok)
+        return c.body
+
+    def test_empty_regex_body_unchanged(self):
+        expected = {"text": ["hello"], "language": "en", "entities": ["PERSON"],
+                    "score_threshold": 0.4, "allow_list": ["Claude", "Demo Mortgage Co."]}
+        self.assertEqual(self.run_analyze(), expected)
+        self.assertEqual(self.run_analyze(allow_regex=[]), expected)
+        self.assertNotIn("allow_list_match", self.run_analyze(allow_regex=()))
+
+    def test_nonempty_regex_switches_mode(self):
+        body = self.run_analyze(allow_regex=[r"\bPOL-\d{3}\b"])
+        self.assertEqual(body["allow_list_match"], "regex")
+        self.assertEqual(body["allow_list"], [r"^(?-i:Claude)$", r"^(?-i:Demo\ Mortgage\ Co\.)$", r"\bPOL-\d{3}\b"])
+
+    def test_invalid_regex_rejected(self):
+        raw = pii_policy.tomllib.loads(POLICY_FILE.read_text(encoding="utf-8"))
+        raw["detector"]["allow_regex"] = ["(unclosed"]
+        with self.assertRaises(pii_policy.PolicyError):
+            pii_policy.parse_policy(raw)
+
+    def test_real_policy_has_two_patterns(self):
+        p = pii_policy.load_policy(POLICY_FILE)
+        self.assertEqual(len(p.allow_regex), 2)
+
+    def test_missing_key_defaults_empty(self):
+        raw = pii_policy.tomllib.loads(POLICY_FILE.read_text(encoding="utf-8"))
+        raw["detector"].pop("allow_regex")
+        self.assertEqual(pii_policy.parse_policy(raw).allow_regex, ())
 
 
 if __name__ == "__main__":
