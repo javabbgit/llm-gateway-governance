@@ -37,6 +37,14 @@ model_list:
       # 单价不写：用镜像自带价格表（$0.10 / $0.50 每 1M，提示 ≤10 万 token 档），对账时核对
     model_info:
       jurisdiction: US
+  - model_name: chat-cloud-strong
+    litellm_params:
+      model: anthropic/claude-sonnet-5-5  # RAG agent 升级对比用，真实计费；不得换成更贵的模型
+      api_key: os.environ/ANTHROPIC_API_KEY
+      reasoning_effort: low               # 与 chat-cloud 相同；注意插件的 LOCKED_PARAMS 不含本别名
+      timeout: 60
+    model_info:
+      jurisdiction: US
   - model_name: chat-deepseek
     litellm_params:
       # 模拟部署（P4 决策 21）：mock_response 让 LiteLLM 直接返回固定文本，不发出任何网络请求、零费用。
